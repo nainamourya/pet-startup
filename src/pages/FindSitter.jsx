@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function FindSitter() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [petType, setPetType] = useState("Dog");
   const [service, setService] = useState("Walk");
@@ -11,6 +12,18 @@ export default function FindSitter() {
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ratings, setRatings] = useState({});
+
+  // Restore previous search when coming back
+  useEffect(() => {
+    const saved = sessionStorage.getItem("findSitterState");
+    if (saved) {
+      const { city, date, results } = JSON.parse(saved);
+      setCity(city || "");
+      setDate(date || "");
+      setResults(results || []);
+    }
+  }, []);
 
   const handleSearch = async () => {
     if (!date) {
@@ -20,13 +33,47 @@ export default function FindSitter() {
 
     setError("");
     setLoading(true);
+    setRatings({});
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/sitters?city=${encodeURIComponent(city.trim())}`
+        `http://localhost:5000/api/sitters?city=${encodeURIComponent(
+          city.trim()
+        )}`
       );
-      const data = await res.json();
-      setResults(data);
+      const sitters = await res.json();
+
+      setResults(sitters);
+
+      // Save state so it survives back-navigation
+      sessionStorage.setItem(
+        "findSitterState",
+        JSON.stringify({ city, date, results: sitters })
+      );
+
+      // Fetch reviews for each sitter
+      const map = {};
+      await Promise.all(
+        sitters.map(async (s) => {
+          const r = await fetch(
+            `http://localhost:5000/api/reviews?sitterId=${s._id}`
+          );
+          const reviews = await r.json();
+
+          if (reviews.length) {
+            const avg =
+              reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
+            map[s._id] = {
+              avg: avg.toFixed(1),
+              count: reviews.length,
+            };
+          } else {
+            map[s._id] = { avg: null, count: 0 };
+          }
+        })
+      );
+
+      setRatings(map);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch sitters. Please try again.");
@@ -110,11 +157,37 @@ export default function FindSitter() {
               className="p-5 rounded-xl border flex items-center justify-between hover:shadow-md transition"
             >
               <div>
-                <h3 className="font-semibold text-lg">{sitter.name}</h3>
+                <h3
+                  className="font-semibold text-lg cursor-pointer text-blue-600 hover:underline"
+                  onClick={() =>
+                    navigate(`/sitter/${sitter._id}`, {
+                      state: { city, date, results },
+                    })
+                  }
+                >
+                  {sitter.name}
+                </h3>
+
                 <p className="text-sm text-gray-600">
                   {sitter.city} • {sitter.experience} experience
                 </p>
-                <p className="text-sm text-gray-600">⭐ {sitter.rating}</p>
+
+                {ratings[sitter._id] ? (
+                  ratings[sitter._id].count > 0 ? (
+                    <p className="text-sm text-gray-600 mt-1">
+                      ⭐ {ratings[sitter._id].avg} (
+                      {ratings[sitter._id].count} reviews)
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-400 mt-1">
+                      No reviews yet
+                    </p>
+                  )
+                ) : (
+                  <p className="text-sm text-gray-400 mt-1">
+                    Loading reviews...
+                  </p>
+                )}
               </div>
 
               <div className="text-right">

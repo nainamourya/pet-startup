@@ -7,6 +7,7 @@ import sitterRoutes from "./routes/sitterRoutes.js";
 import Sitter from "./models/Sitter.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/sitters", sitterRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/reviews", reviewRoutes);
 // 3. Routes
 app.get("/", (req, res) => {
   res.send("PetSitter API is running");

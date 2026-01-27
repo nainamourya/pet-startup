@@ -4,11 +4,12 @@ import Home from "./pages/Home.jsx";
 import FindSitter from "./pages/FindSitter.jsx";
 import BecomeSitter from "./pages/BecomeSitter.jsx";
 import Login from "./pages/Login.jsx";
+import Signup from "./pages/Signup.jsx";
 import BookSitter from "./pages/BookSitter.jsx";
 import MyBookings from "./pages/MyBookings.jsx";
-import Signup from "./pages/Signup.jsx";
-import SitterDashboard from "./pages/SitterDashboard";
-
+import SitterDashboard from "./pages/SitterDashboard.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import FindSitterProfile from "./pages/FindSitterProfile.jsx";
 
 export default function App() {
   return (
@@ -16,13 +17,46 @@ export default function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/sitter/:id" element={<FindSitterProfile />} />
         <Route path="/find" element={<FindSitter />} />
-        <Route path="/become" element={<BecomeSitter />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/book/:id" element={<BookSitter />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<SitterDashboard />} />
+
+        <Route
+          path="/become"
+          element={
+            <ProtectedRoute>
+              <BecomeSitter />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-bookings"
+          element={
+            <ProtectedRoute role="owner">
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute role="sitter">
+              <SitterDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/book/:id"
+          element={
+            <ProtectedRoute>
+              <BookSitter />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

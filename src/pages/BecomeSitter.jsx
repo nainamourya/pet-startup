@@ -23,11 +23,32 @@ export default function BecomeSitter() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch("http://localhost:5000/api/sitters", {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) {
+      alert("Please login first.");
+      return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/sitters/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        userId: user.id,
+      }),
     });
+
+    const data = await res.json();
+
+    // update localStorage with new sitterProfile
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        ...user,
+        role: "sitter",
+        sitterProfile: data.sitter._id,
+      })
+    );
 
     setSuccess(true);
   };
@@ -37,7 +58,7 @@ export default function BecomeSitter() {
       <div className="pt-24 px-6 max-w-xl mx-auto text-center">
         <h1 className="text-3xl font-bold">Application Submitted 🎉</h1>
         <p className="mt-3 text-gray-600">
-          You’re now part of PetSitter. You’ll appear in search results.
+          You’re now part of PetSitter. You can open your Dashboard.
         </p>
       </div>
     );

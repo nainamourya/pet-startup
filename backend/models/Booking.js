@@ -2,16 +2,30 @@ import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
-    sitterId: { type: mongoose.Schema.Types.ObjectId, ref: "Sitter" },
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // 👈 new
+    sitterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sitter",
+      required: true,
+    },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     service: String,
     date: String,
-    status: {
-      type: String,
-      default: "confirmed",
+    status: { type: String, default: "pending" },
+
+    pet: {
+      name: { type: String },
+      type: { type: String },
+      age: { type: String },
+      notes: { type: String },
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Booking", bookingSchema);
+// IMPORTANT: prevent model overwrite issues in dev
+export default mongoose.models.Booking ||
+  mongoose.model("Booking", bookingSchema);
