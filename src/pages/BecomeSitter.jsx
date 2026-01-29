@@ -7,6 +7,8 @@ export default function BecomeSitter() {
     experience: "",
     services: [],
     price: "",
+    bio: "",
+    photo: "",
   });
 
   const [success, setSuccess] = useState(false);
@@ -33,14 +35,14 @@ export default function BecomeSitter() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        userId: user.id,   // 🔑 THIS IS CRITICAL
         ...form,
-        userId: user.id,
       }),
     });
 
     const data = await res.json();
 
-    // update localStorage with new sitterProfile
+    // Update localStorage with sitterProfile
     localStorage.setItem(
       "user",
       JSON.stringify({
@@ -91,6 +93,18 @@ export default function BecomeSitter() {
           placeholder="Price (e.g. ₹500 / day)"
           className="w-full border p-3 rounded-lg"
           onChange={(e) => setForm({ ...form, price: e.target.value })}
+        />
+
+        <textarea
+          placeholder="About you (experience with pets, personality, etc.)"
+          className="w-full border p-3 rounded-lg"
+          onChange={(e) => setForm({ ...form, bio: e.target.value })}
+        />
+
+        <input
+          placeholder="Profile photo URL (optional)"
+          className="w-full border p-3 rounded-lg"
+          onChange={(e) => setForm({ ...form, photo: e.target.value })}
         />
 
         <div className="flex gap-3">

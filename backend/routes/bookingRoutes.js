@@ -1,6 +1,8 @@
 import express from "express";
 import Booking from "../models/Booking.js";
+import Sitter from "../models/Sitter.js";
 import mongoose from "mongoose";
+
 const router = express.Router();
 
 // 🔹 THIS MUST COME FIRST
@@ -20,7 +22,8 @@ router.get("/unavailable", async (req, res) => {
   const dates = bookings.map((b) => b.date);
   res.json(dates);
 });
-// 🔹 THEN your normal GET
+
+// 🔹 Normal GET
 // GET /api/bookings?ownerId=... OR ?sitterId=...
 router.get("/", async (req, res) => {
   const { ownerId, sitterId } = req.query;
@@ -39,8 +42,63 @@ router.get("/", async (req, res) => {
 // POST /api/bookings
 router.post("/", async (req, res) => {
   try {
-    const { sitterId, ownerId, service, date, pet } = req.body;
+    let { sitterId, ownerId, service, date, walk, pet } = req.body;
 
+    // Normalize date for non-walking services
+    if (date && date.includes("-")) {
+      const [y, m, d] = date.split("-");
+      date = `${m}/${d}/${y}`;
+    }
+
+    const sitter = await Sitter.findById(sitterId);
+    if (!sitter) {
+      return res.status(404).json({ message: "Sitter not found" });
+    }
+
+    // 🐕 Walking-specific overlap check
+    if (service?.toLowerCase().includes("walk") && walk) {
+      let { date: wDate, from, to } = walk;
+
+      if (wDate && wDate.includes("-")) {
+        const [y, m, d] = wDate.split("-");
+        wDate = `${m}/${d}/${y}`;
+      }
+
+      const existing = await Booking.find({
+        sitterId,
+        "walk.date": wDate,
+        status: { $in: ["pending", "confirmed"] },
+      });
+
+      const overlap = existing.some((b) => {
+        const aFrom = Number(b.walk.from);
+        const aTo = Number(b.walk.to);
+        const bFrom = Number(from);
+        const bTo = Number(to);
+
+        // allow touching edges (10–11 after 9–10)
+        return bFrom < aTo && bTo > aFrom;
+      });
+
+      if (overlap) {
+        return res.status(400).json({
+          message: "This sitter already has a walk in this time slot.",
+        });
+      }
+
+      const booking = await Booking.create({
+        sitterId,
+        ownerId,
+        service,
+        walk: { date: wDate, from, to },
+        pet,
+        status: "pending",
+      });
+
+      return res.json(booking);
+    }
+
+    // 🌟 Non-walking services (simple date-based)
     const existing = await Booking.findOne({
       sitterId,
       date,
@@ -68,7 +126,6 @@ router.post("/", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 // PATCH /api/bookings/:id
 router.patch("/:id", async (req, res) => {
   const { status } = req.body;

@@ -12,8 +12,19 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     service: String,
+
+    // For non-walk services (Day Care / Boarding)
     date: String,
+
+    // For Walk service (time-based)
+    walk: {
+      date: String,
+      from: String,
+      to: String,
+    },
+
     status: { type: String, default: "pending" },
 
     pet: {

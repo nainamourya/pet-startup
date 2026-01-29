@@ -14,8 +14,17 @@ export default function FindSitter() {
   const [loading, setLoading] = useState(false);
   const [ratings, setRatings] = useState({});
 
-  // Restore previous search when coming back
+  // Restore when coming back
   useEffect(() => {
+    if (results.length > 0) return;
+
+    if (location.state?.results) {
+      setResults(location.state.results);
+      setCity(location.state.city || "");
+      setDate(location.state.date || "");
+      return;
+    }
+
     const saved = sessionStorage.getItem("findSitterState");
     if (saved) {
       const { city, date, results } = JSON.parse(saved);
@@ -23,56 +32,107 @@ export default function FindSitter() {
       setDate(date || "");
       setResults(results || []);
     }
-  }, []);
+  }, [location.state, results.length]);
+
+  // Load ratings when results change
+  useEffect(() => {
+    if (!results.length) return;
+
+    const loadRatings = async () => {
+      const map = {};
+
+      await Promise.all(
+        results.map(async (s) => {
+          try {
+            const r = await fetch(
+              `http://localhost:5000/api/reviews?sitterId=${s._id}`
+            );
+            const reviews = await r.json();
+
+            if (Array.isArray(reviews) && reviews.length) {
+              const avg =
+                reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
+
+              map[s._id] = {
+                avg: avg.toFixed(1),
+                count: reviews.length,
+              };
+            } else {
+              map[s._id] = { avg: null, count: 0 };
+            }
+          } catch {
+            map[s._id] = { avg: null, count: 0 };
+          }
+        })
+      );
+
+      setRatings(map);
+    };
+
+    loadRatings();
+  }, [results]);
 
   const handleSearch = async () => {
     if (!date) {
       setError("Please select a date for your booking.");
       return;
     }
-
+  
     setError("");
     setLoading(true);
     setRatings({});
-
+  
     try {
       const res = await fetch(
         `http://localhost:5000/api/sitters?city=${encodeURIComponent(
           city.trim()
         )}`
       );
-      const sitters = await res.json();
-
-      setResults(sitters);
-
-      // Save state so it survives back-navigation
+  
+      const allSitters = await res.json();
+  
+      // 🔥 Filter by availability
+      const available = allSitters.filter((s) => {
+        if (!Array.isArray(s.availableDates) || s.availableDates.length === 0) {
+          return true; // show sitter
+        }
+        return s.availableDates.includes(date);
+      });
+      
+      setResults(available);
+      // Persist state for back-navigation
       sessionStorage.setItem(
         "findSitterState",
-        JSON.stringify({ city, date, results: sitters })
+        JSON.stringify({ city, date, results: available })
       );
-
+  
       // Fetch reviews for each sitter
       const map = {};
       await Promise.all(
-        sitters.map(async (s) => {
-          const r = await fetch(
-            `http://localhost:5000/api/reviews?sitterId=${s._id}`
-          );
-          const reviews = await r.json();
-
-          if (reviews.length) {
-            const avg =
-              reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
-            map[s._id] = {
-              avg: avg.toFixed(1),
-              count: reviews.length,
-            };
-          } else {
+        available.map(async (s) => {
+          try {
+            const r = await fetch(
+              `http://localhost:5000/api/reviews?sitterId=${s._id}`
+            );
+            const reviews = await r.json();
+  
+            if (Array.isArray(reviews) && reviews.length) {
+              const avg =
+                reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
+  
+              map[s._id] = {
+                avg: avg.toFixed(1),
+                count: reviews.length,
+              };
+            } else {
+              map[s._id] = { avg: null, count: 0 };
+            }
+          } catch {
             map[s._id] = { avg: null, count: 0 };
           }
         })
       );
-
+  
       setRatings(map);
     } catch (err) {
       console.error(err);
@@ -211,3 +271,4 @@ export default function FindSitter() {
     </div>
   );
 }
+  
