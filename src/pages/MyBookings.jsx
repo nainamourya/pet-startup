@@ -4,23 +4,43 @@ import { useLocation, useNavigate } from "react-router-dom";
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusAlert, setStatusAlert] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
-
+  
     setLoading(true);
-
+  
     const res = await fetch(
       `http://localhost:5000/api/bookings?ownerId=${user.id}`
     );
     const data = await res.json();
     setBookings(data);
+  
+    // 🔔 Owner soft notification
+    const lastSeen = localStorage.getItem("ownerLastSeenAt");
+    const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
+  
+    const changed = data.find(
+      (b) =>
+        b.status !== "pending" &&
+        new Date(b.updatedAt) > lastSeenTime
+    );
+  
+    if (changed) {
+      setStatusAlert(
+        `Your booking with ${changed.sitterId?.name || "a sitter"} was ${changed.status}`
+      );
+    }
+  
+    // Mark as seen AFTER checking
+    localStorage.setItem("ownerLastSeenAt", new Date().toISOString());
+  
     setLoading(false);
   };
-
   useEffect(() => {
     load();
   }, [location.pathname]);
@@ -32,6 +52,11 @@ export default function MyBookings() {
   return (
     <div className="pt-24 px-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold">My Bookings</h1>
+      {statusAlert && (
+  <div className="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm">
+    {statusAlert}
+  </div>
+)}
 
       {bookings.length === 0 ? (
         <p className="mt-4 text-gray-600">No bookings yet.</p>
