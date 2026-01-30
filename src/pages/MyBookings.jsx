@@ -11,36 +11,33 @@ export default function MyBookings() {
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
-  
+
     setLoading(true);
-  
+
     const res = await fetch(
       `http://localhost:5000/api/bookings?ownerId=${user.id}`
     );
     const data = await res.json();
     setBookings(data);
-  
+
     // 🔔 Owner soft notification
     const lastSeen = localStorage.getItem("ownerLastSeenAt");
     const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
-  
+
     const changed = data.find(
-      (b) =>
-        b.status !== "pending" &&
-        new Date(b.updatedAt) > lastSeenTime
+      (b) => b.status !== "pending" && new Date(b.updatedAt) > lastSeenTime
     );
-  
+
     if (changed) {
       setStatusAlert(
         `Your booking with ${changed.sitterId?.name || "a sitter"} was ${changed.status}`
       );
     }
-  
-    // Mark as seen AFTER checking
+
     localStorage.setItem("ownerLastSeenAt", new Date().toISOString());
-  
     setLoading(false);
   };
+
   useEffect(() => {
     load();
   }, [location.pathname]);
@@ -52,11 +49,12 @@ export default function MyBookings() {
   return (
     <div className="pt-24 px-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold">My Bookings</h1>
+
       {statusAlert && (
-  <div className="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm">
-    {statusAlert}
-  </div>
-)}
+        <div className="mt-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm">
+          {statusAlert}
+        </div>
+      )}
 
       {bookings.length === 0 ? (
         <p className="mt-4 text-gray-600">No bookings yet.</p>
@@ -67,13 +65,12 @@ export default function MyBookings() {
               <h3 className="font-semibold">
                 {b.sitterId?.name || "Sitter"}
               </h3>
-              <p className="text-sm text-gray-600">
-  {b.service} •{" "}
-  {b.walk
-    ? `${b.walk.date} (${b.walk.from}:00 - ${b.walk.to}:00)`
-    : b.date}
-</p>
 
+              <p className="text-sm text-gray-600">
+                {b.service}
+              </p>
+
+              {/* STATUS */}
               <span
                 className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${
                   b.status === "pending"
@@ -86,46 +83,74 @@ export default function MyBookings() {
                 {b.status}
               </span>
 
-              {b.pet?.name ? (
-  <>
-    <p className="text-sm text-gray-700 mt-2">
-      <span className="font-medium">Pet Name:</span> {b.pet.name}
-    </p>
-    <p className="text-sm text-gray-600">
-      <span className="font-medium">Type:</span> {b.pet.type} •{" "}
-      <span className="font-medium">Age:</span> {b.pet.age}
-    </p>
+              {/* PET DETAILS */}
+              {b.pet && (
+                <div className="mt-2 text-sm text-gray-700">
+                  <p>
+                    <span className="font-medium">Pet Name:</span>{" "}
+                    {b.pet.name}
+                  </p>
+                  <p>
+                    <span className="font-medium">Type:</span>{" "}
+                    {b.pet.type} •{" "}
+                    <span className="font-medium">Age:</span>{" "}
+                    {b.pet.age}
+                  </p>
+                  {b.pet.notes && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Notes: {b.pet.notes}
+                    </p>
+                  )}
+                </div>
+              )}
 
-    {b.pet.notes && (
-      <p className="text-xs text-gray-500 mt-1">
-        <span className="font-medium">Notes:</span> {b.pet.notes}
-      </p>
-    )}
-  </>
-) : (
-  <p className="text-xs text-gray-400 mt-2">
-    Pet details not provided
-  </p>
-)}
-{b.reviewed ? (
-  <p className="mt-3 text-sm text-green-600">
-    Review submitted ✔️
-  </p>
-) : (
-  <button
-    onClick={() =>
-      navigate(`/review/${b._id}`, {
-        state: {
-          sitterId: b.sitterId._id,
-          sitterName: b.sitterId.name,
-        },
-      })
-    }
-    className="mt-3 text-sm text-blue-600 underline"
-  >
-    Leave Review
-  </button>
-)}
+              {/* 🏠 BOARDING DETAILS */}
+              {b.boarding && (
+                <div className="mt-3 text-sm text-gray-700 space-y-1">
+                  <p>
+                    <span className="font-medium">Boarding:</span>{" "}
+                    {b.boarding.startDate} → {b.boarding.endDate}
+                  </p>
+
+                  {b.boarding.vetNumber && (
+                    <p>
+                      <span className="font-medium">Vet Contact:</span>{" "}
+                      {b.boarding.vetNumber}
+                    </p>
+                  )}
+
+                  {b.boarding.medicine && (
+                    <p>
+                      <span className="font-medium">Medicine:</span>{" "}
+                      {b.boarding.medicine}
+                    </p>
+                  )}
+
+                  {b.boarding.emergencyNotes && (
+                    <p className="text-xs text-gray-500">
+                      <span className="font-medium">Emergency Notes:</span>{" "}
+                      {b.boarding.emergencyNotes}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* REVIEW */}
+              {!b.reviewed && (
+                <button
+                  onClick={() =>
+                    navigate(`/review/${b._id}`, {
+                      state: {
+                        sitterId: b.sitterId._id,
+                        sitterName: b.sitterId.name,
+                      },
+                    })
+                  }
+                  className="mt-3 text-sm text-blue-600 underline"
+                >
+                  Leave Review
+                </button>
+              )}
             </div>
           ))}
         </div>

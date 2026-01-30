@@ -12,20 +12,23 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     service: String,
 
-    // For non-walk services (Day Care / Boarding)
     date: String,
 
-    // For Walk service (time-based)
     walk: {
       date: String,
       from: String,
       to: String,
     },
 
-    status: { type: String, default: "pending" },
+    boarding: {
+      startDate: String,
+      endDate: String,
+      medicine: String,
+      vetNumber: String,
+      emergencyNotes: String,
+    },
 
     pet: {
       name: { type: String },
@@ -33,10 +36,13 @@ const bookingSchema = new mongoose.Schema(
       age: { type: String },
       notes: { type: String },
     },
+
+    status: {
+      type: String,
+      default: "pending",
+    },
   },
   { timestamps: true }
 );
 
-// IMPORTANT: prevent model overwrite issues in dev
-export default mongoose.models.Booking ||
-  mongoose.model("Booking", bookingSchema);
+export default mongoose.model("Booking", bookingSchema);

@@ -6,20 +6,30 @@ export default function BookSitter() {
   const navigate = useNavigate();
   const { sitter, service } = location.state || {};
 
-  const [date, setDate] = useState("");
+  // Common pet fields
   const [petName, setPetName] = useState("");
   const [petType, setPetType] = useState("Dog");
   const [petAge, setPetAge] = useState("");
   const [petNotes, setPetNotes] = useState("");
   const [error, setError] = useState("");
 
-  // Walking-specific
+  // Walk
   const [walkDate, setWalkDate] = useState("");
   const [fromHour, setFromHour] = useState("");
   const [toHour, setToHour] = useState("");
 
-  // Robust service check (works for "Walk", "Pet Walk", "Walking", etc.)
+  // Boarding
+  const [boardStart, setBoardStart] = useState("");
+  const [boardEnd, setBoardEnd] = useState("");
+  const [medicine, setMedicine] = useState("");
+  const [vetNumber, setVetNumber] = useState("");
+  const [emergencyNotes, setEmergencyNotes] = useState("");
+
+  // Other services
+  const [date, setDate] = useState("");
+
   const isWalking = service?.toLowerCase().includes("walk");
+  const isBoarding = service?.toLowerCase().includes("board");
 
   const handleConfirm = async () => {
     if (!sitter?._id) {
@@ -33,7 +43,7 @@ export default function BookSitter() {
       return;
     }
 
-    // Validation
+    // WALK VALIDATION
     if (isWalking) {
       if (!walkDate || !fromHour || !toHour) {
         setError("Please select date and time.");
@@ -43,11 +53,28 @@ export default function BookSitter() {
         setError("End time must be after start time.");
         return;
       }
-    } else {
-      if (!date) {
-        setError("Please select a date.");
+    }
+
+    // BOARDING VALIDATION
+    if (isBoarding) {
+      if (!boardStart || !boardEnd) {
+        setError("Please select boarding start and end dates.");
         return;
       }
+      if (new Date(boardEnd) <= new Date(boardStart)) {
+        setError("End date must be after start date.");
+        return;
+      }
+      if (!vetNumber) {
+        setError("Vet phone number is required for boarding.");
+        return;
+      }
+    }
+
+    // NORMAL DATE VALIDATION
+    if (!isWalking && !isBoarding && !date) {
+      setError("Please select a date.");
+      return;
     }
 
     const res = await fetch("http://localhost:5000/api/bookings", {
@@ -57,14 +84,23 @@ export default function BookSitter() {
         sitterId: sitter._id,
         ownerId: user.id,
         service,
-        date: !isWalking ? date : undefined,
+
         walk: isWalking
+          ? { date: walkDate, from: fromHour, to: toHour }
+          : undefined,
+
+        boarding: isBoarding
           ? {
-              date: walkDate,
-              from: fromHour,
-              to: toHour,
+              startDate: boardStart,
+              endDate: boardEnd,
+              medicine,
+              vetNumber,
+              emergencyNotes,
             }
           : undefined,
+
+        date: !isWalking && !isBoarding ? date : undefined,
+
         pet: {
           name: petName,
           type: petType,
@@ -107,13 +143,19 @@ export default function BookSitter() {
           placeholder="Pet name"
           className="w-full border p-3 rounded-lg"
           value={petName}
-          onChange={(e) => setPetName(e.target.value)}
+          onChange={(e) => {
+            setPetName(e.target.value);
+            setError("");
+          }}
         />
 
         <select
           className="w-full border p-3 rounded-lg"
           value={petType}
-          onChange={(e) => setPetType(e.target.value)}
+          onChange={(e) => {
+            setPetType(e.target.value);
+            setError("");
+          }}
         >
           <option>Dog</option>
           <option>Cat</option>
@@ -121,20 +163,27 @@ export default function BookSitter() {
         </select>
 
         <input
-          placeholder="Pet age"
+          placeholder="Pet age (years / months)"
           className="w-full border p-3 rounded-lg"
           value={petAge}
-          onChange={(e) => setPetAge(e.target.value)}
+          onChange={(e) => {
+            setPetAge(e.target.value);
+            setError("");
+          }}
         />
 
         <textarea
           placeholder="Notes about your pet"
           className="w-full border p-3 rounded-lg"
           value={petNotes}
-          onChange={(e) => setPetNotes(e.target.value)}
+          onChange={(e) => {
+            setPetNotes(e.target.value);
+            setError("");
+          }}
         />
 
-        {isWalking ? (
+        {/* WALK */}
+        {isWalking && (
           <>
             <input
               type="date"
@@ -150,7 +199,10 @@ export default function BookSitter() {
               <select
                 className="w-full border p-3 rounded-lg"
                 value={fromHour}
-                onChange={(e) => setFromHour(e.target.value)}
+                onChange={(e) => {
+                  setFromHour(e.target.value);
+                  setError("");
+                }}
               >
                 <option value="">From</option>
                 {[...Array(15)].map((_, i) => {
@@ -166,7 +218,10 @@ export default function BookSitter() {
               <select
                 className="w-full border p-3 rounded-lg"
                 value={toHour}
-                onChange={(e) => setToHour(e.target.value)}
+                onChange={(e) => {
+                  setToHour(e.target.value);
+                  setError("");
+                }}
               >
                 <option value="">To</option>
                 {[...Array(15)].map((_, i) => {
@@ -180,7 +235,63 @@ export default function BookSitter() {
               </select>
             </div>
           </>
-        ) : (
+        )}
+
+        {/* BOARDING */}
+        {isBoarding && (
+          <>
+            <input
+              type="date"
+              className="w-full border p-3 rounded-lg"
+              value={boardStart}
+              onChange={(e) => {
+                setBoardStart(e.target.value);
+                setError("");
+              }}
+            />
+            <input
+              type="date"
+              className="w-full border p-3 rounded-lg"
+              value={boardEnd}
+              onChange={(e) => {
+                setBoardEnd(e.target.value);
+                setError("");
+              }}
+            />
+
+            <input
+              placeholder="Vet phone number (required)"
+              className="w-full border p-3 rounded-lg"
+              value={vetNumber}
+              onChange={(e) => {
+                setVetNumber(e.target.value);
+                setError("");
+              }}
+            />
+
+            <textarea
+              placeholder="Medicine details (if any)"
+              className="w-full border p-3 rounded-lg"
+              value={medicine}
+              onChange={(e) => {
+                setMedicine(e.target.value);
+                setError("");
+              }}
+            />
+
+            <textarea
+              placeholder="Emergency instructions"
+              className="w-full border p-3 rounded-lg"
+              value={emergencyNotes}
+              onChange={(e) => {
+                setEmergencyNotes(e.target.value);
+                setError("");
+              }}
+            />
+          </>
+        )}
+
+        {!isWalking && !isBoarding && (
           <input
             type="date"
             className="w-full border p-3 rounded-lg"
