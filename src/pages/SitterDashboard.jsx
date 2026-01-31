@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 export default function SitterDashboard() {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [weeklyEarnings, setWeeklyEarnings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const location = useLocation();
@@ -27,7 +28,8 @@ export default function SitterDashboard() {
     const profileRes = await fetch(
       `http://localhost:5000/api/sitters/${user.sitterProfile}`
     );
-    setProfile(await profileRes.json());
+    const profileData = await profileRes.json();
+    setProfile(profileData);
 
     const bookingsRes = await fetch(
       `http://localhost:5000/api/bookings?sitterId=${user.sitterProfile}`
@@ -60,6 +62,42 @@ export default function SitterDashboard() {
     load();
   }, [location.pathname]);
 
+  /* =========================
+     WEEKLY EARNINGS LOGIC
+  ========================= */
+  useEffect(() => {
+    if (!bookings.length || !profile?.price) return;
+
+    const today = new Date();
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(today.getDate() - i);
+      return d.toDateString();
+    }).reverse();
+
+    const earningsMap = {};
+    last7Days.forEach((d) => (earningsMap[d] = 0));
+
+    bookings.forEach((b) => {
+      if (b.status === "confirmed") {
+        const day = new Date(b.createdAt).toDateString();
+        if (earningsMap[day] !== undefined) {
+          earningsMap[day] += Number(profile.price || 0);
+        }
+      }
+    });
+
+    setWeeklyEarnings(
+      last7Days.map((d) => ({
+        day: d.split(" ").slice(0, 3).join(" "),
+        amount: earningsMap[d],
+      }))
+    );
+  }, [bookings, profile]);
+
+  /* =========================
+     UPDATE BOOKING STATUS
+  ========================= */
   const updateStatus = async (id, status) => {
     await fetch(`http://localhost:5000/api/bookings/${id}`, {
       method: "PATCH",
@@ -75,6 +113,9 @@ export default function SitterDashboard() {
     setNewCount(0);
   };
 
+  /* =========================
+     AVAILABILITY
+  ========================= */
   const saveAvailability = async (dates) => {
     const user = JSON.parse(localStorage.getItem("user"));
     setSaving(true);
@@ -94,10 +135,31 @@ export default function SitterDashboard() {
 
   if (loading) return <div className="pt-24 px-6">Loading...</div>;
 
+  /* =========================
+     INCOME CALCULATIONS
+  ========================= */
   const confirmedCount = bookings.filter(
     (b) => b.status === "confirmed"
   ).length;
 
+  const today = new Date();
+
+  const todayIncome =
+    bookings.filter(
+      (b) =>
+        b.status === "confirmed" &&
+        new Date(b.createdAt).toDateString() === today.toDateString()
+    ).length * Number(profile?.price || 0);
+
+  const monthlyIncome =
+    bookings.filter((b) => {
+      const d = new Date(b.createdAt);
+      return (
+        b.status === "confirmed" &&
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear()
+      );
+    }).length * Number(profile?.price || 0);
   return (
     <div className="pt-24 px-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold">Sitter Dashboard</h1>
@@ -111,10 +173,126 @@ export default function SitterDashboard() {
       {error && <p className="mt-4 text-red-500">{error}</p>}
 
       {/* Stats */}
-      <div className="mt-6 p-4 rounded-xl border bg-gray-50">
-        <p className="text-sm text-gray-600">Confirmed Bookings</p>
-        <p className="text-2xl font-bold">{confirmedCount}</p>
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div className="p-4 rounded-xl border bg-gray-50">
+    <p className="text-sm text-gray-600">Confirmed Bookings</p>
+    <p className="text-2xl font-bold">{confirmedCount}</p>
+  </div>
+
+  <div className="p-4 rounded-xl border bg-green-50">
+    <p className="text-sm text-gray-600">Today's Income</p>
+    <p className="text-2xl font-bold text-green-700">
+      ₹{todayIncome}
+    </p>
+  </div>
+
+  <div className="p-4 rounded-xl border bg-blue-50">
+    <p className="text-sm text-gray-600">This Month</p>
+    <p className="text-2xl font-bold text-blue-700">
+      ₹{monthlyIncome}
+    </p>
+  </div>
+</div>
+
+
+      {/* ================= EARNINGS CHART ================= */}
+      <div className="mt-10 p-5 border rounded-xl bg-white">
+        <h2 className="text-xl font-semibold mb-4">
+          Earnings (Last 7 Days)
+        </h2>
+
+        <div className="flex items-end gap-3 h-40">
+          {weeklyEarnings.map((e, i) => (
+            <div key={i} className="flex-1 text-center">
+              <div
+                className="bg-green-500 rounded-t"
+                style={{ height: `${Math.max(e.amount / 10, 5)}px` }}
+              />
+              <p className="text-xs mt-2 text-gray-600">{e.day}</p>
+              <p className="text-xs font-medium">₹{e.amount}</p>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* ================= PROFILE ================
+{/* =====================
+    SITTER PROFILE
+===================== */}
+{profile && (
+  <div className="mt-10 p-5 border rounded-xl bg-white">
+    <div className="flex justify-between items-center">
+      <h2 className="text-xl font-semibold">Your Profile</h2>
+      <button
+        onClick={() => setEditing(!editing)}
+        className="text-sm text-blue-600 underline"
+      >
+        {editing ? "Cancel" : "Edit"}
+      </button>
+    </div>
+
+    {editing ? (
+      <div className="mt-4 space-y-3">
+        <input
+          className="w-full border p-2 rounded"
+          value={profile.name || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, name: e.target.value })
+          }
+        />
+
+        <input
+          className="w-full border p-2 rounded"
+          value={profile.city || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, city: e.target.value })
+          }
+        />
+
+        <input
+          className="w-full border p-2 rounded"
+          value={profile.experience || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, experience: e.target.value })
+          }
+        />
+
+        <input
+          className="w-full border p-2 rounded"
+          value={profile.price || ""}
+          onChange={(e) =>
+            setProfile({ ...profile, price: e.target.value })
+          }
+        />
+
+        <button
+          onClick={async () => {
+            await fetch(
+              `http://localhost:5000/api/sitters/${profile._id}`,
+              {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(profile),
+              }
+            );
+            setEditing(false);
+            alert("Profile updated");
+          }}
+          className="px-4 py-2 rounded bg-black text-white text-sm"
+        >
+          Save Changes
+        </button>
+      </div>
+    ) : (
+      <div className="mt-4 text-sm text-gray-700 space-y-1">
+        <p><b>Name:</b> {profile.name}</p>
+        <p><b>City:</b> {profile.city}</p>
+        <p><b>Experience:</b> {profile.experience}</p>
+        <p><b>Price:</b> ₹{profile.price}</p>
+      </div>
+    )}
+  </div>
+)}
 
       {/* Bookings */}
       <h2 className="text-xl font-semibold mt-10">Bookings</h2>
