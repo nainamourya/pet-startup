@@ -5,24 +5,6 @@ import mongoose from "mongoose";
 const router = express.Router();
 
 /* ============================
-   GET UNAVAILABLE DATES
-============================ */
-router.get("/unavailable", async (req, res) => {
-  const { sitterId } = req.query;
-
-  if (!sitterId || !mongoose.Types.ObjectId.isValid(sitterId)) {
-    return res.status(400).json({ message: "Invalid sitterId" });
-  }
-
-  const bookings = await Booking.find({
-    sitterId,
-    status: { $in: ["pending", "confirmed"] },
-  }).select("date");
-
-  res.json(bookings.map((b) => b.date));
-});
-
-/* ============================
    GET BOOKINGS
 ============================ */
 router.get("/", async (req, res) => {
@@ -42,68 +24,39 @@ router.get("/", async (req, res) => {
 /* ============================
    CREATE BOOKING
 ============================ */
+router.post("/", async (req, res) => {
+  try {
+    const { sitterId, ownerId, service, date, walk, boarding, pet } = req.body;
 
-  router.post("/", async (req, res) => {
-    try {
-      const { sitterId, ownerId, service, date, walk, boarding, pet } = req.body;
-  
-      console.log("📥 Incoming booking body:", req.body);
-      console.log("🧾 Service:", service);
-      console.log("🏠 Boarding payload:", boarding);
-  
-      const isWalking = service?.toLowerCase().includes("walk");
-      const isBoarding = service?.toLowerCase().includes("board");
+    const isWalking = service?.toLowerCase().includes("walk");
+    const isBoarding = service?.toLowerCase().includes("board");
 
-    // 1️⃣ Get ALL active bookings for sitter
+    // 1️⃣ Get all active bookings for sitter
     const existingBookings = await Booking.find({
       sitterId,
       status: { $in: ["pending", "confirmed"] },
     });
 
     /* ============================
-       BLOCK BY EXISTING BOARDING
+       BLOCK BOARDING OVERLAP
     ============================ */
-
-    // Dates user is trying to book
-    const requestedDates = [];
-
-    if (isWalking && walk?.date) {
-      requestedDates.push(new Date(walk.date));
-    }
-
-    if (!isWalking && !isBoarding && date) {
-      requestedDates.push(new Date(date));
-    }
-
     if (isBoarding && boarding?.startDate && boarding?.endDate) {
-      let d = new Date(boarding.startDate);
-      const end = new Date(boarding.endDate);
+      const newStart = new Date(boarding.startDate);
+      const newEnd = new Date(boarding.endDate);
 
-      while (d <= end) {
-        requestedDates.push(new Date(d));
-        d.setDate(d.getDate() + 1);
-      }
-    }
+      const overlap = existingBookings.some((b) => {
+        if (!b.boarding?.startDate || !b.boarding?.endDate) return false;
 
-    // Check against existing boarding bookings
-    for (const b of existingBookings) {
-      const isExistingBoarding =
-        b.service?.toLowerCase().includes("board") &&
-        b.boarding?.startDate &&
-        b.boarding?.endDate;
-    
-      if (!isExistingBoarding) continue;
-    
-      const start = new Date(b.boarding.startDate);
-      const end = new Date(b.boarding.endDate);
-    
-      for (const d of requestedDates) {
-        if (d >= start && d <= end) {
-          return res.status(400).json({
-            message:
-              "This sitter is already booked for boarding on these dates.",
-          });
-        }
+        const start = new Date(b.boarding.startDate);
+        const end = new Date(b.boarding.endDate);
+
+        return newStart <= end && newEnd >= start;
+      });
+
+      if (overlap) {
+        return res.status(400).json({
+          message: "This sitter is already booked for these boarding dates.",
+        });
       }
     }
 
@@ -112,9 +65,7 @@ router.get("/", async (req, res) => {
     ============================ */
     if (isWalking && walk) {
       const sameDayWalks = existingBookings.filter(
-        (b) =>
-          b.walk?.date === walk.date &&
-          ["pending", "confirmed"].includes(b.status)
+        (b) => b.walk?.date === walk.date
       );
 
       const overlap = sameDayWalks.some((b) => {
@@ -128,8 +79,19 @@ router.get("/", async (req, res) => {
 
       if (overlap) {
         return res.status(400).json({
-          message:
-            "This sitter is already booked in this time slot.",
+          message: "This sitter is already booked in this time slot.",
+        });
+      }
+    }
+
+    /* ============================
+       SINGLE DATE BLOCK
+    ============================ */
+    if (!isWalking && !isBoarding && date) {
+      const exists = existingBookings.some((b) => b.date === date);
+      if (exists) {
+        return res.status(400).json({
+          message: "This sitter is already booked on this date.",
         });
       }
     }
@@ -137,23 +99,47 @@ router.get("/", async (req, res) => {
     /* ============================
        CREATE BOOKING
     ============================ */
-    const newBooking = {
+    const booking = await Booking.create({
       sitterId,
       ownerId,
       service,
       date: !isWalking && !isBoarding ? date : undefined,
       walk: isWalking ? walk : undefined,
       boarding: isBoarding ? boarding : undefined,
-      pet: pet,
+      pet,
       status: "pending",
-    }
-    console.log("🆕 New booking to create:", newBooking);
-    const booking = await Booking.create(newBooking);
+    });
 
     res.json(booking);
   } catch (err) {
-    console.error("Booking error:", JSON.stringify(err));
+    console.error("Booking error:", err);
     res.status(500).json({ message: err.message });
+  }
+});
+
+/* ============================
+   UPDATE BOOKING STATUS (🔥 FIX)
+============================ */
+router.patch("/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["pending", "confirmed", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    booking.status = status;
+    await booking.save(); // 🔥 THIS WAS MISSING EARLIER
+
+    res.json(booking);
+  } catch (err) {
+    console.error("Patch error:", err);
+    res.status(500).json({ message: "Failed to update booking" });
   }
 });
 
