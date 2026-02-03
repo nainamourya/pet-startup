@@ -8,18 +8,24 @@ const router = express.Router();
    GET BOOKINGS
 ============================ */
 router.get("/", async (req, res) => {
-  const { ownerId, sitterId } = req.query;
+  try {
+    const { ownerId, sitterId } = req.query;
 
-  const filter = {};
-  if (ownerId) filter.ownerId = ownerId;
-  if (sitterId) filter.sitterId = sitterId;
+    const filter = {};
+    if (ownerId) filter.ownerId = ownerId;
+    if (sitterId) filter.sitterId = sitterId;
 
-  const bookings = await Booking.find(filter)
-    .populate("sitterId")
-    .populate("ownerId");
+    const bookings = await Booking.find(filter)
+      .populate("sitterId")
+      .populate("ownerId");
 
-  res.json(bookings);
+    res.json(bookings);
+  } catch (error) {
+    console.error("Fetch bookings error:", error);
+    res.status(500).json({ message: "Failed to fetch bookings" });
+  }
 });
+
 
 /* ============================
    CREATE BOOKING

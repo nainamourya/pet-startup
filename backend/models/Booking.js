@@ -7,13 +7,14 @@ const bookingSchema = new mongoose.Schema(
       ref: "Sitter",
       required: true,
     },
+
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    service: String,
 
+    service: String,
     date: String,
 
     walk: {
@@ -37,9 +38,22 @@ const bookingSchema = new mongoose.Schema(
       notes: { type: String },
     },
 
+
     status: {
       type: String,
       default: "pending",
+    },
+
+    // ✅ ADD THIS BLOCK
+    payment: {
+      paid: {
+        type: Boolean,
+        default: false,
+      },
+      amount: { type: Number },   
+      razorpayOrderId: { type: String },
+      razorpayPaymentId: { type: String },
+      paidAt: { type: Date },
     },
   },
   { timestamps: true }

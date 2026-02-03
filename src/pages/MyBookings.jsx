@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { openRazorpay } from "../utils/razorpayPayment";
+
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
@@ -82,8 +84,36 @@ export default function MyBookings() {
               >
                 {b.status}
               </span>
+              {/* 💳 PAY NOW BUTTON */}
+{/* 💰 PAYMENT STATUS */}
+{b.payment?.paid && (
+  <span className="ml-2 inline-block px-2 py-1 text-xs rounded bg-green-100 text-green-800">
+    Paid
+  </span>
+)}
 
-              {/* PET DETAILS */}
+{/* 💳 PAY NOW BUTTON */}
+{b.status === "confirmed" && b.payment?.paid !== true && (
+  <button
+    onClick={() =>
+      openRazorpay({
+        amount: 1, // 🔥 FORCE NUMBER
+        bookingId: b._id,
+      })
+    }
+    className="mt-3 px-4 py-2 bg-green-600 text-white rounded"
+  >
+    Pay Now
+  </button>
+)}
+
+{b.payment?.paid && (
+  <span className="inline-block mt-3 px-3 py-1 text-xs rounded bg-green-100 text-green-800">
+    Paid
+  </span>
+)}
+
+    {/* PET DETAILS */}
               {b.pet && (
                 <div className="mt-2 text-sm text-gray-700">
                   <p>
