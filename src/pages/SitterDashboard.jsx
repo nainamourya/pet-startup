@@ -121,11 +121,15 @@ export default function SitterDashboard() {
     const user = JSON.parse(localStorage.getItem("user"));
     setSaving(true);
 
+    const token = localStorage.getItem("token");
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     await fetch(
       `http://localhost:5000/api/sitters/${user.sitterProfile}/availability`,
       {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ dates }),
       }
     );
@@ -304,11 +308,15 @@ const confirmedCount = paidBookings.length;
 
         <button
           onClick={async () => {
+            const token = localStorage.getItem("token");
+            const headers = { "Content-Type": "application/json" };
+            if (token) headers.Authorization = `Bearer ${token}`;
+
             await fetch(
               `http://localhost:5000/api/sitters/${profile._id}`,
               {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify(profile),
               }
             );

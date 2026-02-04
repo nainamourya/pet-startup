@@ -1,6 +1,7 @@
 import express from "express";
 import Sitter from "../models/Sitter.js";
 import User from "../models/User.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -63,7 +64,7 @@ router.get("/:id/availability", async (req, res) => {
 });
 
 // PATCH /api/sitters/:id/availability
-router.patch("/:id/availability", async (req, res) => {
+router.patch("/:id/availability", requireAuth, async (req, res) => {
   const { dates } = req.body;
 
   if (!Array.isArray(dates)) {
@@ -71,11 +72,17 @@ router.patch("/:id/availability", async (req, res) => {
   }
 
   try {
-    const sitter = await Sitter.findByIdAndUpdate(
-      req.params.id,
-      { availableDates: dates },
-      { new: true }
-    );
+    // authorization: allow admin or owner of sitter profile
+    const sitter = await Sitter.findById(req.params.id);
+    if (!sitter) return res.status(404).json({ message: "Sitter not found" });
+
+    const requester = req.user;
+    if (requester.role !== "admin" && requester.sitterProfile !== req.params.id) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    sitter.availableDates = dates;
+    await sitter.save();
 
     if (!sitter) {
       return res.status(404).json({ message: "Sitter not found" });
@@ -88,19 +95,29 @@ router.patch("/:id/availability", async (req, res) => {
 });
 
 // PATCH /api/sitters/:id  (Update sitter profile)
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", requireAuth, async (req, res) => {
   try {
-    const updated = await Sitter.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    // authorization: only admin or sitter owner can update
+    const sitter = await Sitter.findById(req.params.id);
+    if (!sitter) return res.status(404).json({ message: "Sitter not found" });
 
-    if (!updated) {
-      return res.status(404).json({ message: "Sitter not found" });
+    const requester = req.user;
+    if (requester.role !== "admin" && requester.sitterProfile !== req.params.id) {
+      return res.status(403).json({ message: "Forbidden" });
     }
 
-    res.json(updated);
+    // Prevent changing protected fields unless admin
+    const allowed = ["name", "city", "experience", "services", "price", "bio", "photo", "availableDates"];
+    const updateData = {};
+    Object.keys(req.body).forEach((key) => {
+      if (requester.role === "admin" || allowed.includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
+
+    Object.assign(sitter, updateData);
+    await sitter.save();
+    res.json(sitter);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

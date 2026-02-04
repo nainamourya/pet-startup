@@ -13,8 +13,52 @@ export default function FindSitter() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [ratings, setRatings] = useState({});
+  // Helper to fetch sitters and their reviews
+  const fetchSitters = async (cityParam, dateParam) => {
+    const res = await fetch(
+      `http://localhost:5000/api/sitters?city=${encodeURIComponent(
+        cityParam.trim()
+      )}`
+    );
 
-  // Restore when coming back
+    const allSitters = await res.json();
+
+    // Filter by availability
+    const available = allSitters.filter((s) => {
+      if (!Array.isArray(s.availableDates) || s.availableDates.length === 0) {
+        return true;
+      }
+      return s.availableDates.includes(dateParam);
+    });
+
+    // Fetch ratings
+    const map = {};
+    await Promise.all(
+      available.map(async (s) => {
+        try {
+          const r = await fetch(
+            `http://localhost:5000/api/reviews?sitterId=${s._id}`
+          );
+          const reviews = await r.json();
+
+          if (Array.isArray(reviews) && reviews.length) {
+            const avg =
+              reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
+
+            map[s._id] = { avg: avg.toFixed(1), count: reviews.length };
+          } else {
+            map[s._id] = { avg: null, count: 0 };
+          }
+        } catch {
+          map[s._id] = { avg: null, count: 0 };
+        }
+      })
+    );
+
+    return { available, ratingsMap: map };
+  };
+
+  // Restore when coming back and refresh prices in background
   useEffect(() => {
     if (results.length > 0) return;
 
@@ -22,15 +66,50 @@ export default function FindSitter() {
       setResults(location.state.results);
       setCity(location.state.city || "");
       setDate(location.state.date || "");
+
+      // Refresh latest data in background
+      (async () => {
+        try {
+          const { available, ratingsMap } = await fetchSitters(
+            location.state.city || "",
+            location.state.date || ""
+          );
+          setResults(available);
+          setRatings(ratingsMap);
+        } catch (e) {
+          // ignore
+        }
+      })();
+
       return;
     }
 
     const saved = sessionStorage.getItem("findSitterState");
     if (saved) {
-      const { city, date, results } = JSON.parse(saved);
-      setCity(city || "");
-      setDate(date || "");
-      setResults(results || []);
+      const { city: savedCity, date: savedDate, results: savedResults } =
+        JSON.parse(saved);
+      setCity(savedCity || "");
+      setDate(savedDate || "");
+      setResults(savedResults || []);
+
+      // Refresh latest data in background
+      (async () => {
+        try {
+          const { available, ratingsMap } = await fetchSitters(
+            savedCity || "",
+            savedDate || ""
+          );
+          setResults(available);
+          setRatings(ratingsMap);
+          // Persist refreshed results
+          sessionStorage.setItem(
+            "findSitterState",
+            JSON.stringify({ city: savedCity, date: savedDate, results: available })
+          );
+        } catch (e) {
+          // ignore
+        }
+      })();
     }
   }, [location.state, results.length]);
 
@@ -83,57 +162,15 @@ export default function FindSitter() {
     setRatings({});
   
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/sitters?city=${encodeURIComponent(
-          city.trim()
-        )}`
-      );
-  
-      const allSitters = await res.json();
-  
-      // 🔥 Filter by availability
-      const available = allSitters.filter((s) => {
-        if (!Array.isArray(s.availableDates) || s.availableDates.length === 0) {
-          return true; // show sitter
-        }
-        return s.availableDates.includes(date);
-      });
-      
+      const { available, ratingsMap } = await fetchSitters(city, date);
       setResults(available);
+      setRatings(ratingsMap);
+
       // Persist state for back-navigation
       sessionStorage.setItem(
         "findSitterState",
         JSON.stringify({ city, date, results: available })
       );
-  
-      // Fetch reviews for each sitter
-      const map = {};
-      await Promise.all(
-        available.map(async (s) => {
-          try {
-            const r = await fetch(
-              `http://localhost:5000/api/reviews?sitterId=${s._id}`
-            );
-            const reviews = await r.json();
-  
-            if (Array.isArray(reviews) && reviews.length) {
-              const avg =
-                reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
-  
-              map[s._id] = {
-                avg: avg.toFixed(1),
-                count: reviews.length,
-              };
-            } else {
-              map[s._id] = { avg: null, count: 0 };
-            }
-          } catch {
-            map[s._id] = { avg: null, count: 0 };
-          }
-        })
-      );
-  
-      setRatings(map);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch sitters. Please try again.");
