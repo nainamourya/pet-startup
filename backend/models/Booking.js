@@ -15,6 +15,10 @@ const bookingSchema = new mongoose.Schema(
     },
 
     service: String,
+    servicePrice: {
+      type: Number,
+      required: true, // 🔥 PRICE IS NOW FIXED HERE
+    },
     date: String,
 
     walk: {

@@ -7,9 +7,10 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusAlert, setStatusAlert] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-
+  const profile = location.state?.profile || {};
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
@@ -94,17 +95,38 @@ export default function MyBookings() {
 
 {/* 💳 PAY NOW BUTTON */}
 {b.status === "confirmed" && b.payment?.paid !== true && (
-  <button
-    onClick={() =>
-      openRazorpay({
-        amount: 1, // 🔥 FORCE NUMBER
-        bookingId: b._id,
-      })
-    }
-    className="mt-3 px-4 py-2 bg-green-600 text-white rounded"
-  >
-    Pay Now
-  </button>
+  <div className="mt-3">
+    <p className="text-sm text-gray-700 mb-2">
+      <span className="font-medium">Amount to Pay:</span> ₹{b.servicePrice || (b.sitterId?.price ? parseInt(b.sitterId.price) : "N/A")}
+    </p>
+    <button
+      onClick={async () => {
+        try {
+          setPaymentLoading(b._id);
+          const sitterPrice = b.sitterId?.price ? parseInt(b.sitterId.price.replace(/[^\d]/g, "")) : 0;
+          const amount = Number(b.servicePrice || sitterPrice || 0);
+          if (amount <= 0) {
+            alert("Invalid amount. Sitter price not set. Please contact the sitter.");
+            return;
+          }
+          console.log("Starting payment for booking:", b._id, "Amount:", amount);
+          await openRazorpay({
+            amount,
+            bookingId: b._id,
+          });
+        } catch (error) {
+          console.error("Payment error:", error);
+          alert("Payment error: " + error.message);
+        } finally {
+          setPaymentLoading(null);
+        }
+      }}
+      disabled={paymentLoading === b._id}
+      className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {paymentLoading === b._id ? "Processing..." : "Pay Now"}
+    </button>
+  </div>
 )}
 
 {b.payment?.paid && (

@@ -55,7 +55,7 @@ router.post("/verify", async (req, res) => {
 
     const {
       bookingId,
-      amount, // ✅ MUST COME FROM FRONTEND
+      amount,
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
@@ -67,6 +67,12 @@ router.post("/verify", async (req, res) => {
         .json({ message: "bookingId and amount are required" });
     }
 
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res
+        .status(400)
+        .json({ message: "Payment credentials are missing" });
+    }
+
     // 1️⃣ Verify Razorpay signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -75,17 +81,30 @@ router.post("/verify", async (req, res) => {
       .update(body)
       .digest("hex");
 
+    console.log("Expected signature:", expectedSignature);
+    console.log("Received signature:", razorpay_signature);
+
     if (expectedSignature !== razorpay_signature) {
+      console.error("❌ Signature mismatch!");
       return res.status(400).json({ message: "Invalid payment signature" });
     }
 
-    // 2️⃣ Update booking payment (NO booking.amount ❌)
+    console.log("✅ Signature verified!");
+
+    // 2️⃣ Check if already paid
+    const existingBooking = await Booking.findById(bookingId);
+    if (existingBooking?.payment?.paid) {
+      console.log("⚠️ Payment already processed for this booking");
+      return res.json({ success: true, message: "Payment already processed" });
+    }
+
+    // 3️⃣ Update booking payment
     const booking = await Booking.findByIdAndUpdate(
       bookingId,
       {
         $set: {
           "payment.paid": true,
-          "payment.amount": Number(amount), // ✅ THIS IS THE FIX
+          "payment.amount": Number(amount),
           "payment.razorpayOrderId": razorpay_order_id,
           "payment.razorpayPaymentId": razorpay_payment_id,
           "payment.paidAt": new Date(),
@@ -95,18 +114,19 @@ router.post("/verify", async (req, res) => {
     );
 
     if (!booking) {
+      console.error("❌ Booking not found");
       return res.status(404).json({ message: "Booking not found" });
     }
 
     console.log("✅ PAYMENT SAVED:", booking.payment);
 
-    res.json({ success: true });
+    res.json({ success: true, message: "Payment verified and saved" });
   } catch (error) {
     console.error("❌ Payment verification failed:", error);
-    res.status(500).json({ message: "Verification failed" });
+    res
+      .status(500)
+      .json({ message: "Verification failed: " + error.message });
   }
 });
 
 export default router;
-
-
