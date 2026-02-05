@@ -12,6 +12,9 @@ export default function SitterDashboard() {
   const watchIdRef = useRef(null);
   const brand = "#ff9b7a";
   const [availableDates, setAvailableDates] = useState([]);
+  const [activeWalkId, setActiveWalkId] = useState(
+    () => localStorage.getItem("activeWalkId")
+  );
   // const [newDate, setNewDate] = useState("");
   // const [saving, setSaving] = useState(false);
   const [newCount, setNewCount] = useState(0);
@@ -24,6 +27,7 @@ export default function SitterDashboard() {
 const startWalk = (bookingId) => {
   console.log("🚶 Walk started for booking:", bookingId);
   localStorage.setItem("activeWalkId", bookingId);
+  setActiveWalkId(bookingId);
   socket.emit("join-walk", { bookingId });
   // 🔔 NOTIFY OWNER
   socket.emit("walk-started", { bookingId });
@@ -53,7 +57,7 @@ const endWalk = (bookingId) => {
   socket.emit("end-walk", { bookingId });
 
   localStorage.removeItem("activeWalkId");
-
+  setActiveWalkId(null);
   toast.success("Walk ended successfully 🏁");
 };
 /* =========================
@@ -91,6 +95,7 @@ useEffect(() => {
     }
 
     localStorage.removeItem("activeWalkId");
+    setActiveWalkId(null);
   });
 
   return () => {
@@ -574,6 +579,12 @@ const confirmedCount = paidBookings.length;
                     ? `${b.walk.date} (${b.walk.from}:00 – ${b.walk.to}:00)`
                     : b.date}
                 </p>
+                {/* 🚶 WALKING BADGE */}
+  {activeWalkId === b._id && (
+    <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+      🚶 Walking in progress
+    </span>
+  )}
               </div>
       
               {/* STATUS */}
@@ -761,14 +772,26 @@ const confirmedCount = paidBookings.length;
               b.payment?.paid && (
                 <div className="mt-4">
                   <button
-                    onClick={() => startWalk(b._id)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-full text-sm hover:scale-105 transition"
-                  >
-                    🚶 Start Walk
-                  </button>
-                  <button
+  onClick={() => startWalk(b._id)}
+  disabled={activeWalkId === b._id || activeWalkId !== null}
+  className={`px-4 py-2 rounded-full text-sm transition
+    ${
+      activeWalkId
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-green-600 text-white hover:scale-105"
+    }`}
+>
+  {activeWalkId === b._id ? "🚶 Walking…" : "🚶 Start Walk"}
+</button>
+                 <button
   onClick={() => endWalk(b._id)}
-  className="ml-3 px-4 py-2 bg-red-600 text-white rounded-full text-sm"
+  disabled={activeWalkId !== b._id}
+  className={`ml-3 px-4 py-2 rounded-full text-sm
+    ${
+      activeWalkId === b._id
+        ? "bg-red-600 text-white hover:scale-105"
+        : "bg-gray-300 cursor-not-allowed"
+    }`}
 >
   🛑 End Walk
 </button>
