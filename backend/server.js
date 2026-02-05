@@ -4,7 +4,8 @@ dotenv.config();
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-
+import http from "http";
+import { Server } from "socket.io";
 import process from "process";
 import sitterRoutes from "./routes/sitterRoutes.js";
 import Sitter from "./models/Sitter.js";
@@ -31,6 +32,40 @@ app.get("/", (req, res) => {
 });
 console.log("KEY ID:", process.env.RAZORPAY_KEY_ID);
 console.log("SECRET:", process.env.RAZORPAY_KEY_SECRET ? "LOADED" : "MISSING");
+
+/* ============================
+   SERVER + SOCKET.IO
+============================ */
+
+const httpServer = http.createServer(app);
+
+export const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
+});
+
+/* ============================
+   SOCKET.IO LOGIC (LIVE WALK)
+============================ */
+io.on("connection", (socket) => {
+  console.log("🟢 Socket connected:", socket.id);
+
+  socket.on("join-walk", ({ bookingId }) => {
+    socket.join(bookingId);
+    console.log("👣 Joined walk room:", bookingId);
+  });
+
+  socket.on("send-location", ({ bookingId, lat, lng }) => {
+    socket.to(bookingId).emit("receive-location", { lat, lng });
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Socket disconnected:", socket.id);
+  });
+});
+
 // 4. Configuration constants
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -60,9 +95,9 @@ mongoose
       console.log("✓ Sample sitter created");
     }
 
-    app.listen(PORT, () =>
-      console.log(`✓ Server running on http://localhost:${PORT}`)
-    );
+    httpServer.listen(PORT, () => {
+      console.log(`✓ Server + Socket.IO running on http://localhost:${PORT}`);
+    });
   })
   .catch((err) => {
     console.error("✗ MongoDB connection failed:", err.message);

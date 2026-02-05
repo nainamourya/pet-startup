@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { openRazorpay } from "../utils/razorpayPayment";
-
+import { Link } from "react-router-dom";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
@@ -10,7 +10,7 @@ export default function MyBookings() {
   const [paymentLoading, setPaymentLoading] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const profile = location.state?.profile || {};
+  // const profile = location.state?.profile || {};
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
@@ -72,7 +72,21 @@ export default function MyBookings() {
               <p className="text-sm text-gray-600">
                 {b.service}
               </p>
+              
+      {/* 📍 TRACK WALK BUTTON */}
+      {b.service === "Walk" &&
+        b.status === "confirmed" &&
+        b.payment?.paid && (
+          <div className="mt-3">
+            <Link to={`/track-walk/${b._id}`}>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:scale-105 transition">
+                📍 Track Walk
+              </button>
+            </Link>
+          </div>
+        )}
 
+     
               {/* STATUS */}
               <span
                 className={`inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium ${

@@ -11,6 +11,7 @@ import SitterDashboard from "./pages/SitterDashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import FindSitterProfile from "./pages/FindSitterProfile.jsx";
 import LeaveReview from "./pages/LeaveReview.jsx";  
+import OwnerTrackWalk from "./pages/OwnerTrackWalk.jsx";
 
 export default function App() {
   return (
@@ -41,6 +42,14 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+<Route
+  path="/track-walk/:bookingId"
+  element={
+    <ProtectedRoute role="owner">
+      <OwnerTrackWalk/>
+    </ProtectedRoute>
+  }
+/>
 
         <Route
           path="/dashboard"

@@ -2,6 +2,7 @@ import express from "express";
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
 import { getRazorpayInstance } from "../config/razorpay.js";
+import process from "process";
 
 const router = express.Router();
 
@@ -77,7 +78,7 @@ router.post("/verify", async (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
     const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "")
       .update(body)
       .digest("hex");
 
@@ -128,5 +129,65 @@ router.post("/verify", async (req, res) => {
       .json({ message: "Verification failed: " + error.message });
   }
 });
+/* ============================
+   CANCEL & REFUND BOOKING
+============================ */
+router.post("/cancel", async (req, res) => {
+  try {
+    const { bookingId, cancelledBy } = req.body;
+    // cancelledBy: "owner" | "sitter"
 
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (!booking.payment?.paid) {
+      booking.status = "cancelled";
+      await booking.save();
+      return res.json({ success: true, refunded: false });
+    }
+
+    // 🔎 Service date check
+    let serviceDate = booking.date;
+
+    if (booking.walk?.date) serviceDate = booking.walk.date;
+    if (booking.boarding?.startDate) serviceDate = booking.boarding.startDate;
+
+    const isBeforeService =
+      serviceDate && new Date(serviceDate) > new Date();
+
+    // ❌ Owner cancels late → no refund
+    if (cancelledBy === "owner" && !isBeforeService) {
+      booking.status = "cancelled";
+      await booking.save();
+      return res.json({
+        success: true,
+        refunded: false,
+        message: "Cancelled after service date. No refund.",
+      });
+    }
+
+    // ✅ Refund allowed
+    const razorpay = getRazorpayInstance();
+
+    await razorpay.payments.refund(
+      booking.payment.razorpayPaymentId,
+      {
+        amount: booking.payment.amount * 100, // paise
+      }
+    );
+
+    booking.status = "refunded";
+    booking.payment.refunded = true;
+    booking.payment.refundedAt = new Date();
+
+    await booking.save();
+
+    res.json({ success: true, refunded: true });
+  } catch (err) {
+    console.error("Cancel/Refund error:", err);
+    res.status(500).json({ message: "Cancellation failed" });
+  }
+});
 export default router;

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useRef  } from "react";
 import { useLocation } from "react-router-dom";
-
+import { socket } from "../socket";
 export default function SitterDashboard() {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -8,15 +8,39 @@ export default function SitterDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const location = useLocation();
+  const watchIdRef = useRef(null);
   const brand = "#ff9b7a";
   const [availableDates, setAvailableDates] = useState([]);
-  const [newDate, setNewDate] = useState("");
-  const [saving, setSaving] = useState(false);
+  // const [newDate, setNewDate] = useState("");
+  // const [saving, setSaving] = useState(false);
   const [newCount, setNewCount] = useState(0);
 
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
+  /* =========================
+  START WALK FUNCTION ✅
+========================= */
+const startWalk = (bookingId) => {
+  console.log("🚶 Walk started for booking:", bookingId);
 
+  socket.emit("join-walk", { bookingId });
+
+  if (watchIdRef.current) return;
+
+  watchIdRef.current = navigator.geolocation.watchPosition(
+    (pos) => {
+      console.log("📍 Location:", pos.coords.latitude, pos.coords.longitude);
+
+      socket.emit("send-location", {
+        bookingId,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
+    },
+    (err) => console.error("❌ GPS error", err),
+    { enableHighAccuracy: true }
+  );
+};
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || !user.sitterProfile) {
@@ -61,7 +85,14 @@ export default function SitterDashboard() {
   useEffect(() => {
     load();
   }, [location.pathname]);
-
+  useEffect(() => {
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, []);
   /* =========================
      WEEKLY EARNINGS LOGIC
   ========================= */
@@ -117,26 +148,26 @@ export default function SitterDashboard() {
   /* =========================
      AVAILABILITY
   ========================= */
-  const saveAvailability = async (dates) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    setSaving(true);
-
-    const token = localStorage.getItem("token");
-    const headers = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    await fetch(
-      `http://localhost:5000/api/sitters/${user.sitterProfile}/availability`,
-      {
-        method: "PATCH",
-        headers,
-        body: JSON.stringify({ dates }),
-      }
-    );
-
-    setAvailableDates(dates);
-    setSaving(false);
-  };
+  // const saveAvailability = async (dates) => {
+  //   const user = JSON.parse(localStorage.getItem("user"));
+  //   setSaving(true);
+  //
+  //   const token = localStorage.getItem("token");
+  //   const headers = { "Content-Type": "application/json" };
+  //   if (token) headers.Authorization = `Bearer ${token}`;
+  //
+  //   await fetch(
+  //     `http://localhost:5000/api/sitters/${user.sitterProfile}/availability`,
+  //     {
+  //       method: "PATCH",
+  //       headers,
+  //       body: JSON.stringify({ dates }),
+  //     }
+  //   );
+  //
+  //   setAvailableDates(dates);
+  //   setSaving(false);
+  // };
 
   if (loading) return <div className="pt-24 px-6">Loading...</div>;
 
@@ -165,6 +196,23 @@ const confirmedCount = paidBookings.length;
     );
   })
   .reduce((sum, b) => sum + (b.payment.amount || 0), 0);
+
+  // let watchId = null;
+
+  
+
+    // let watchId = navigator.geolocation.watchPosition(
+    //   (pos) => {
+    //     socket.emit("send-location", {
+    //       bookingId,
+    //       lat: pos.coords.latitude,
+    //       lng: pos.coords.longitude,
+    //     });
+    //   },
+    //   (err) => console.error(err),
+    //   { enableHighAccuracy: true }
+    // );
+  
   return (
     <div className="pt-24 px-6 max-w-4xl mx-auto">
      <div className="flex items-center gap-3">
@@ -443,15 +491,14 @@ const confirmedCount = paidBookings.length;
     )}
   </div>
 )}
-
-      {/* Bookings */}
+     
       <h2 className="text-xl font-semibold mt-10">Bookings</h2>
 
       {bookings.length === 0 ? (
         <p className="mt-4 text-gray-500">No bookings yet.</p>
       ) : (
         <div className="mt-8 grid gap-6">
-        {bookings.map((b) => (
+          {bookings.map((b) => (
           <div
             key={b._id}
             className="p-6 rounded-2xl border bg-white shadow-sm hover:shadow-md transition"
@@ -544,11 +591,21 @@ const confirmedCount = paidBookings.length;
         className="w-3.5 h-3.5 rounded-full transition-all duration-500"
         style={{
           backgroundColor:
-            b.status === "confirmed"
-              ? brand
-              : b.status === "rejected"
-              ? "#ef4444"
-              : "#e5e7eb",
+      b.status === "pending"
+        ? "#fff7e6"
+        : b.status === "confirmed"
+        ? "#e8fff3"
+        : b.status === "completed"
+        ? "#f0fdf4"
+        : "#ffecec",
+    color:
+      b.status === "pending"
+        ? "#b45309"
+        : b.status === "confirmed"
+        ? "#047857"
+        : b.status === "completed"
+        ? "#166534"
+        : "#b91c1c",
         }}
       />
       <span className="text-[10px] mt-1 text-gray-500">
@@ -560,6 +617,7 @@ const confirmedCount = paidBookings.length;
   <p className="mt-2 text-xs font-medium text-gray-600 text-center">
     {b.status === "pending" && "Waiting for your response"}
     {b.status === "confirmed" && "Booking confirmed 🎉"}
+    {b.status === "completed" && "Service completed ✅"}
     {b.status === "rejected" && "Booking rejected"}
   </p>
 </div>
@@ -638,9 +696,23 @@ const confirmedCount = paidBookings.length;
                 </button>
               </div>
             )}
+
+            {/* START WALK (only for paid walk bookings) */}
+            {b.service === "Walk" &&
+              b.status === "confirmed" &&
+              b.payment?.paid && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => startWalk(b._id)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-full text-sm hover:scale-105 transition"
+                  >
+                    🚶 Start Walk
+                  </button>
+                </div>
+              )}
           </div>
         ))}
-      </div>
+        </div>
       )}
 
       {/* Reviews */}

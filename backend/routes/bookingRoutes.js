@@ -1,13 +1,41 @@
 import express from "express";
 import Booking from "../models/Booking.js";
 import Sitter from "../models/Sitter.js";
-import mongoose from "mongoose";
 
 const router = express.Router();
 const parsePrice = (value) => {
   if (!value) return 0;
   const num = parseInt(String(value).replace(/[^\d]/g, ""), 10);
   return isNaN(num) ? 0 : num;
+};
+/* ============================
+   AUTO COMPLETE CHECK
+============================ */
+const isBookingCompleted = (booking) => {
+  const now = new Date();
+
+  // 🐕 WALK
+  if (booking.walk?.date && booking.walk?.to) {
+    const end = new Date(booking.walk.date);
+    end.setHours(Number(booking.walk.to), 0, 0, 0);
+    return now > end;
+  }
+
+  // 🏠 BOARDING
+  if (booking.boarding?.endDate) {
+    const end = new Date(booking.boarding.endDate);
+    end.setHours(23, 59, 59, 999);
+    return now > end;
+  }
+
+  // 📅 SINGLE DAY
+  if (booking.date) {
+    const end = new Date(booking.date);
+    end.setHours(23, 59, 59, 999);
+    return now > end;
+  }
+
+  return false;
 };
 
 /* ============================
@@ -21,10 +49,20 @@ router.get("/", async (req, res) => {
     if (ownerId) filter.ownerId = ownerId;
     if (sitterId) filter.sitterId = sitterId;
 
-    const bookings = await Booking.find(filter)
+    let bookings = await Booking.find(filter)
       .populate("sitterId")
       .populate("ownerId");
-
+      // 🔥 AUTO COMPLETE LOGIC
+      for (const booking of bookings) {
+        if (
+          booking.status === "confirmed" &&
+          booking.payment?.paid &&
+          isBookingCompleted(booking)
+        ) {
+          booking.status = "completed";
+          await booking.save();
+        }
+      }
     res.json(bookings);
   } catch (error) {
     console.error("Fetch bookings error:", error);
@@ -78,7 +116,7 @@ router.patch("/:id", async (req, res) => {
   try {
     const { status } = req.body;
 
-    if (!["pending", "confirmed", "rejected"].includes(status)) {
+    if (!["pending", "confirmed", "rejected", "completed"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 

@@ -59,6 +59,8 @@ const bookingSchema = new mongoose.Schema(
       razorpayPaymentId: { type: String },
       paidAt: { type: Date },
     },
+    refunded: { type: Boolean, default: false },
+refundedAt: Date,
   },
   { timestamps: true }
 );

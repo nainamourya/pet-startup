@@ -76,7 +76,7 @@ export default function FindSitter() {
           );
           setResults(available);
           setRatings(ratingsMap);
-        } catch (e) {
+        } catch {
           // ignore
         }
       })();
@@ -106,7 +106,7 @@ export default function FindSitter() {
             "findSitterState",
             JSON.stringify({ city: savedCity, date: savedDate, results: available })
           );
-        } catch (e) {
+        } catch {
           // ignore
         }
       })();
