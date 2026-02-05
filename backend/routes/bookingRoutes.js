@@ -35,7 +35,6 @@ const isBookingCompleted = (booking) => {
     return now > end;
   }
 
-  return false;
 };
 
 /* ============================
@@ -134,5 +133,12 @@ router.patch("/:id", async (req, res) => {
     res.status(500).json({ message: "Failed to update booking" });
   }
 });
-
+// kive live location fetch karna hai
+router.get("/:id/location", async (req, res) => {
+  const booking = await Booking.findById(req.params.id);
+  if (!booking || !booking.liveLocation) {
+    return res.json(null);
+  }
+  res.json(booking.liveLocation);
+});
 export default router;

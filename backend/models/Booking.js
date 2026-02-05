@@ -47,7 +47,13 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: "pending",
     },
-
+    
+    liveLocation: {
+      lat: { type: Number },
+      lng: { type: Number },
+      address: { type: String },
+      updatedAt: { type: Date },
+    },
     // ✅ ADD THIS BLOCK
     payment: {
       paid: {

@@ -45,27 +45,78 @@ export const io = new Server(httpServer, {
     methods: ["GET", "POST"],
   },
 });
-
+const liveWalkLocations = {};
 /* ============================
    SOCKET.IO LOGIC (LIVE WALK)
 ============================ */
 io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
+  /* =====================
+     JOIN WALK ROOM
+  ===================== */
   socket.on("join-walk", ({ bookingId }) => {
     socket.join(bookingId);
     console.log("👣 Joined walk room:", bookingId);
+
+    // 🔥 SEND LAST LOCATION IMMEDIATELY
+    if (liveWalkLocations[bookingId]) {
+      socket.emit("receive-location", liveWalkLocations[bookingId]);
+    }
   });
 
+  /* =====================
+     WALK STARTED 🔔
+  ===================== */
+  socket.on("walk-started", ({ bookingId }) => {
+    console.log("🚶 Walk started:", bookingId);
+
+    socket.to(bookingId).emit("notify-owner", {
+      type: "walk-started",
+      message: "🐕 Your pet’s walk has started!",
+    });
+  });
+
+  /* =====================
+     LIVE LOCATION 📍
+  ===================== */
   socket.on("send-location", ({ bookingId, lat, lng }) => {
-    socket.to(bookingId).emit("receive-location", { lat, lng });
+    const payload = { lat, lng };
+
+    // 🔥 SAVE LAST LOCATION
+    liveWalkLocations[bookingId] = payload;
+
+    socket.to(bookingId).emit("receive-location", payload);
   });
 
+  /* =====================
+     WALK ENDED 🛑
+  ===================== */
+  socket.on("end-walk", ({ bookingId }) => {
+    console.log("🛑 Walk ended for booking:", bookingId);
+
+    // 🧹 remove cached location
+    if (liveWalkLocations[bookingId]) {
+      delete liveWalkLocations[bookingId];
+    }
+
+    // stop map for owner
+    io.to(bookingId).emit("walk-ended");
+
+    // 🔔 push notification
+    io.to(bookingId).emit("notify-owner", {
+      type: "walk-ended",
+      message: "🏁 Your pet’s walk has ended!",
+    });
+  });
+
+  /* =====================
+     DISCONNECT
+  ===================== */
   socket.on("disconnect", () => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
-
 // 4. Configuration constants
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;

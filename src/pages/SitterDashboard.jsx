@@ -1,6 +1,7 @@
 import { useEffect, useState,useRef  } from "react";
 import { useLocation } from "react-router-dom";
 import { socket } from "../socket";
+import toast from "react-hot-toast";
 export default function SitterDashboard() {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -22,9 +23,10 @@ export default function SitterDashboard() {
 ========================= */
 const startWalk = (bookingId) => {
   console.log("🚶 Walk started for booking:", bookingId);
-
+  localStorage.setItem("activeWalkId", bookingId);
   socket.emit("join-walk", { bookingId });
-
+  // 🔔 NOTIFY OWNER
+  socket.emit("walk-started", { bookingId });
   if (watchIdRef.current) return;
 
   watchIdRef.current = navigator.geolocation.watchPosition(
@@ -41,6 +43,60 @@ const startWalk = (bookingId) => {
     { enableHighAccuracy: true }
   );
 };
+
+const endWalk = (bookingId) => {
+  if (watchIdRef.current) {
+    navigator.geolocation.clearWatch(watchIdRef.current);
+    watchIdRef.current = null;
+  }
+
+  socket.emit("end-walk", { bookingId });
+
+  localStorage.removeItem("activeWalkId");
+
+  toast.success("Walk ended successfully 🏁");
+};
+/* =========================
+   RESUME WALK AFTER REFRESH 🔁
+========================= */
+useEffect(() => {
+  const activeWalkId = localStorage.getItem("activeWalkId");
+
+  if (!activeWalkId) return;
+  if (watchIdRef.current) return;
+
+  console.log("🔁 Resuming active walk:", activeWalkId);
+
+  socket.emit("join-walk", { bookingId: activeWalkId });
+
+  watchIdRef.current = navigator.geolocation.watchPosition(
+    (pos) => {
+      socket.emit("send-location", {
+        bookingId: activeWalkId,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      });
+    },
+    (err) => console.error("❌ GPS error", err),
+    { enableHighAccuracy: true }
+  );
+}, []);
+useEffect(() => {
+  socket.on("walk-ended", () => {
+    console.log("🛑 Walk ended (sitter side)");
+
+    if (watchIdRef.current) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+
+    localStorage.removeItem("activeWalkId");
+  });
+
+  return () => {
+    socket.off("walk-ended");
+  };
+}, []);
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || !user.sitterProfile) {
@@ -85,6 +141,8 @@ const startWalk = (bookingId) => {
   useEffect(() => {
     load();
   }, [location.pathname]);
+
+
   useEffect(() => {
     return () => {
       if (watchIdRef.current) {
@@ -708,6 +766,12 @@ const confirmedCount = paidBookings.length;
                   >
                     🚶 Start Walk
                   </button>
+                  <button
+  onClick={() => endWalk(b._id)}
+  className="ml-3 px-4 py-2 bg-red-600 text-white rounded-full text-sm"
+>
+  🛑 End Walk
+</button>
                 </div>
               )}
           </div>

@@ -12,9 +12,19 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import FindSitterProfile from "./pages/FindSitterProfile.jsx";
 import LeaveReview from "./pages/LeaveReview.jsx";  
 import OwnerTrackWalk from "./pages/OwnerTrackWalk.jsx";
+import { Toaster } from "react-hot-toast";
 
 export default function App() {
   return (
+    <>
+    {/* 🔔 Toast Notifications */}
+    <Toaster
+      position="top-right"
+      reverseOrder={false}
+      toastOptions={{
+        duration: 4000,
+      }}
+    />
     <BrowserRouter>
       <Navbar />
       <Routes>
@@ -70,5 +80,6 @@ export default function App() {
         />
       </Routes>
     </BrowserRouter>
+    </>
   );
 }
