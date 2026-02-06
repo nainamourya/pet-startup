@@ -2,6 +2,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
+import "./cron/autoCompleteBookings.js";
 import mongoose from "mongoose";
 import cors from "cors";
 import http from "http";
@@ -13,6 +14,16 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import paymentRoute from "./routes/paymentRoute.js";
+import withdrawalRoutes from "./routes/withdrawalRoutes.js";
+// admin routes
+import adminAuthRoutes from "./routes/admin/auth.js";
+import adminDashboardRoutes from "./routes/admin/dashboard.js";
+import adminWithdrawalRoutes from "./routes/admin/withdrawals.js";
+import adminTestRoutes from "./routes/admin/test.js";
+
+// middleware
+import { requireAuth } from "./middleware/auth.js";
+import { requireAdmin } from "./middleware/requireAdmin.js";
 
 
 const app = express();
@@ -20,11 +31,39 @@ const app = express();
 // 2. Middleware
 app.use(cors());
 app.use(express.json());
+
 app.use("/api/sitters", sitterRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoute);
+app.use("/api/withdrawals", withdrawalRoutes);
+/* ================= ADMIN ROUTES ================= */
+
+// admin login (NO requireAdmin here)
+app.use("/api/admin/auth", adminAuthRoutes);
+
+// protected admin routes
+app.use(
+  "/api/admin/dashboard",
+  requireAuth,
+  requireAdmin,
+  adminDashboardRoutes
+);
+
+app.use(
+  "/api/admin/withdrawals",
+  requireAuth,
+  requireAdmin,
+  adminWithdrawalRoutes
+);
+
+app.use(
+  "/api/admin/test",
+  requireAuth,
+  requireAdmin,
+  adminTestRoutes
+);
 
 // 3. Routes
 app.get("/", (req, res) => {
@@ -92,14 +131,18 @@ io.on("connection", (socket) => {
   /* =====================
      WALK ENDED 🛑
   ===================== */
-  socket.on("end-walk", ({ bookingId }) => {
+  socket.on("end-walk",async  ({ bookingId }) => {
     console.log("🛑 Walk ended for booking:", bookingId);
 
     // 🧹 remove cached location
     if (liveWalkLocations[bookingId]) {
       delete liveWalkLocations[bookingId];
     }
-
+    // ✅ MARK BOOKING AS COMPLETED
+    await Booking.findByIdAndUpdate(bookingId, {
+      status: "completed",
+      completedAt: new Date(),
+    });
     // stop map for owner
     io.to(bookingId).emit("walk-ended");
 

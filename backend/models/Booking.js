@@ -47,12 +47,16 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: "pending",
     },
-    
+
     liveLocation: {
       lat: { type: Number },
       lng: { type: Number },
       address: { type: String },
       updatedAt: { type: Date },
+    },
+
+    completedAt: {
+      type: Date,
     },
     // ✅ ADD THIS BLOCK
     payment: {
@@ -68,6 +72,8 @@ const bookingSchema = new mongoose.Schema(
     refunded: { type: Boolean, default: false },
 refundedAt: Date,
   },
+
+  
   { timestamps: true }
 );
 

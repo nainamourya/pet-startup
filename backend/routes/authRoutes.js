@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import process from "process";
 import User from "../models/User.js";
 
 const router = express.Router();
@@ -34,14 +35,17 @@ router.post("/register", async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  // Ensure sitterProfile is properly serialized as string
+  const sitterProfileId = user.sitterProfile ? String(user.sitterProfile) : null;
+
   res.json({
     token,
     user: {
-      id: user._id,
+      id: user._id.toString(),
       name: user.name,
       email: user.email,
       role: user.role,
-      sitterProfile: user.sitterProfile || null,
+      sitterProfile: sitterProfileId,
     },
   });
 });
@@ -66,14 +70,17 @@ router.post("/login", async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  // Ensure sitterProfile is properly serialized as string
+  const sitterProfileId = user.sitterProfile ? String(user.sitterProfile) : null;
+
   res.json({
     token,
     user: {
-      id: user._id,
+      id: user._id.toString(),
       name: user.name,
       email: user.email,
       role: user.role,
-      sitterProfile: user.sitterProfile || null,
+      sitterProfile: sitterProfileId,
     },
   });
 });

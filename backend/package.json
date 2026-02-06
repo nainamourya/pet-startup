@@ -18,6 +18,7 @@
     "express": "^5.2.1",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.5",
+    "node-cron": "^4.2.1",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.3"
   }

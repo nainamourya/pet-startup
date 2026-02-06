@@ -59,6 +59,7 @@ router.get("/", async (req, res) => {
           isBookingCompleted(booking)
         ) {
           booking.status = "completed";
+          booking.completedAt = new Date();
           await booking.save();
         }
       }
@@ -125,6 +126,9 @@ router.patch("/:id", async (req, res) => {
     }
 
     booking.status = status;
+    if (status === "completed") {
+      booking.completedAt = new Date(); // ✅ ADD THIS
+    }
     await booking.save(); // 🔥 THIS WAS MISSING EARLIER
 
     res.json(booking);

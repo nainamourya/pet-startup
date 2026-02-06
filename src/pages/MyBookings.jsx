@@ -17,28 +17,46 @@ export default function MyBookings() {
 
     setLoading(true);
 
+    const ownerId = user._id || user.id;
     const res = await fetch(
-      `http://localhost:5000/api/bookings?ownerId=${user.id}`
+      `http://localhost:5000/api/bookings?ownerId=${ownerId}`
     );
-    const data = await res.json();
-    setBookings(data);
+    try {
+      const data = await res.json();
 
-    // 🔔 Owner soft notification
-    const lastSeen = localStorage.getItem("ownerLastSeenAt");
-    const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
+      // Normalize response: some APIs may return { bookings: [...] } or an object on error
+      const normalized = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.bookings)
+        ? data.bookings
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
 
-    const changed = data.find(
-      (b) => b.status !== "pending" && new Date(b.updatedAt) > lastSeenTime
-    );
+      setBookings(normalized);
 
-    if (changed) {
-      setStatusAlert(
-        `Your booking with ${changed.sitterId?.name || "a sitter"} was ${changed.status}`
+      // 🔔 Owner soft notification
+      const lastSeen = localStorage.getItem("ownerLastSeenAt");
+      const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
+
+      const changed = normalized.find(
+        (b) => b.status !== "pending" && new Date(b.updatedAt) > lastSeenTime
       );
-    }
 
-    localStorage.setItem("ownerLastSeenAt", new Date().toISOString());
-    setLoading(false);
+      if (changed) {
+        setStatusAlert(
+          `Your booking with ${changed.sitterId?.name || "a sitter"} was ${changed.status}`
+        );
+      }
+
+      localStorage.setItem("ownerLastSeenAt", new Date().toISOString());
+    } catch (err) {
+      console.error("Failed to load bookings:", err);
+      setStatusAlert("Failed to load bookings. Please try again later.");
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

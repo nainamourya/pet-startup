@@ -31,11 +31,11 @@ export default function BecomeSitter() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/api/sitters/create", {
+    const res = await fetch("http://localhost:5000/api/sitters", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: user.id,   // 🔑 THIS IS CRITICAL
+        userId: user.id,
         ...form,
       }),
     });
@@ -48,7 +48,7 @@ export default function BecomeSitter() {
       JSON.stringify({
         ...user,
         role: "sitter",
-        sitterProfile: data.sitter._id,
+        sitterProfile: String(data.sitter._id),
       })
     );
 

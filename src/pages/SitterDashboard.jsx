@@ -10,6 +10,7 @@ export default function SitterDashboard() {
   const [error, setError] = useState("");
   const location = useLocation();
   const watchIdRef = useRef(null);
+  const [balance, setBalance] = useState(null);
   const brand = "#ff9b7a";
   const [availableDates, setAvailableDates] = useState([]);
   const [activeWalkId, setActiveWalkId] = useState(
@@ -21,6 +22,19 @@ export default function SitterDashboard() {
 
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+  
+  // Ensure sitterId is always a valid string, not undefined or placeholder
+  const getSitterId = () => {
+    const id = user?.sitterProfile;
+    if (!id || typeof id !== 'string' || id.length !== 24) {
+      console.warn('⚠️ Invalid sitterId format:', id, 'Length:', id?.length);
+      return null;
+    }
+    return id;
+  };
+  
+  const sitterId = getSitterId();
   /* =========================
   START WALK FUNCTION ✅
 ========================= */
@@ -104,6 +118,9 @@ useEffect(() => {
 }, []);
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
+    console.log("📝 User from localStorage:", user);
+    console.log("🔑 Sitter Profile ID:", user?.sitterProfile, "Length:", user?.sitterProfile?.length);
+    
     if (!user || !user.sitterProfile) {
       setError("This account is not linked to a sitter profile.");
       setLoading(false);
@@ -114,6 +131,8 @@ useEffect(() => {
       `http://localhost:5000/api/sitters/${user.sitterProfile}`
     );
     const profileData = await profileRes.json();
+    console.log("👤 Profile data fetched:", profileData);
+    console.log("🔑 Profile ID from API:", profileData._id, "Length:", profileData._id?.length);
     setProfile(profileData);
 
     const bookingsRes = await fetch(
@@ -189,7 +208,45 @@ useEffect(() => {
     );
   }, [bookings]);
   
-
+  useEffect(() => {
+    if (!profile?._id) {
+      console.log("⏳ Waiting for profile to load...", profile);
+      return;
+    }
+  
+    const profileId = String(profile._id);
+    
+    // Safety check: ensure profileId is valid 24-character hex string
+    if (!/^[a-f0-9]{24}$/.test(profileId)) {
+      console.error("❌ Invalid profile ID format:", profileId, "Length:", profileId.length);
+      return;
+    }
+    
+    console.log("🔄 Fetching balance for profile:", profileId);
+    console.log("   Profile object:", profile);
+    
+    const url = `http://localhost:5000/api/withdrawals/balance/${profileId}`;
+    console.log("📍 Fetch URL:", url);
+    
+    fetch(url)
+      .then(async (res) => {
+        console.log("📊 Balance response status:", res.status);
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("✅ Balance loaded:", data);
+        setBalance(data);
+      })
+      .catch((err) => {
+        console.error("❌ Balance fetch failed:", err.message);
+        setBalance(null);
+      });
+  }, [profile]);
+  
   /* =========================
      UPDATE BOOKING STATUS
   ========================= */
@@ -366,10 +423,7 @@ const confirmedCount = paidBookings.length;
         </div>
       </div>
 
-      {/* ================= PROFILE ================
-{/* =====================
-    SITTER PROFILE
-===================== */}
+        {/* ================= PROFILE ================ SITTER PROFILE ===================== */}
 {profile && (
  <div className="mt-10 p-6 rounded-2xl border bg-white shadow-sm">
     <div className="flex justify-between items-center">
@@ -801,7 +855,46 @@ const confirmedCount = paidBookings.length;
         ))}
         </div>
       )}
+{balance && (
+  <div className="mt-6 p-5 border rounded-xl bg-white">
+    <p className="text-sm text-gray-500">Available Balance</p>
+    <p className="text-3xl font-bold">₹{balance.availableBalance}</p>
 
+    <button
+      disabled={balance.availableBalance < balance.minWithdrawal}
+      className="mt-3 px-4 py-2 bg-black text-white rounded disabled:opacity-50"
+      onClick={async () => {
+        const amount = prompt("Enter withdrawal amount");
+        if (!amount) return;
+        
+        // Validate sitterId before sending
+        const validSitterId = getSitterId();
+        if (!validSitterId) {
+          toast.error("Error: Sitter profile not properly loaded. Please refresh and try again.");
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/api/withdrawals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sitterId: validSitterId,
+            amount: Number(amount),
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.message);
+        } else {
+          toast.success("Withdrawal requested");
+        }
+      }}
+    >
+      Withdraw Money
+    </button>
+  </div>
+)}
       {/* Reviews */}
       <h2 className="text-xl font-semibold mt-12">Your Reviews</h2>
 
