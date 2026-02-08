@@ -24,8 +24,9 @@ import adminTestRoutes from "./routes/admin/test.js";
 // middleware
 import { requireAuth } from "./middleware/auth.js";
 import { requireAdmin } from "./middleware/requireAdmin.js";
-
-
+import adminUserRoutes from "./routes/admin/users.js";
+import adminReviewRoutes from "./routes/admin/reviews.js";
+import adminSitterRoutes from "./routes/admin/sitters.js";
 const app = express();
 
 // 2. Middleware
@@ -42,7 +43,9 @@ app.use("/api/withdrawals", withdrawalRoutes);
 
 // admin login (NO requireAdmin here)
 app.use("/api/admin/auth", adminAuthRoutes);
-
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/reviews", adminReviewRoutes);
+app.use("/api/admin", adminSitterRoutes);
 // protected admin routes
 app.use(
   "/api/admin/dashboard",

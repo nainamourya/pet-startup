@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/layout/Navbar.jsx";
 import Home from "./pages/Home.jsx";
 import FindSitter from "./pages/FindSitter.jsx";
 import BecomeSitter from "./pages/BecomeSitter.jsx";
@@ -10,76 +9,130 @@ import MyBookings from "./pages/MyBookings.jsx";
 import SitterDashboard from "./pages/SitterDashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import FindSitterProfile from "./pages/FindSitterProfile.jsx";
-import LeaveReview from "./pages/LeaveReview.jsx";  
+import LeaveReview from "./pages/LeaveReview.jsx";
 import OwnerTrackWalk from "./pages/OwnerTrackWalk.jsx";
 import { Toaster } from "react-hot-toast";
+import AdminLogin from "./admin/pages/AdminLogin.jsx";
+import AdminDashboard from "./admin/pages/AdminDashboard.jsx";
+import AdminWithdrawals from "./admin/pages/AdminWithdrawals.jsx";
+import AdminProtectedRoute from "./components/AdminProtectedRoute.jsx";
+import UserLayout from "./layouts/UserLayout.jsx";
+import AdminLayout from "./layouts/AdminLayout.jsx";
+import AdminUsers from "./admin/pages/AdminUsers.jsx";
+import AdminReviews from "./admin/pages/AdminReviews.jsx";
+import AdminSitters from "./admin/pages/AdminSitters.jsx";
 
 export default function App() {
   return (
     <>
-    {/* 🔔 Toast Notifications */}
-    <Toaster
-      position="top-right"
-      reverseOrder={false}
-      toastOptions={{
-        duration: 4000,
-      }}
-    />
+    <Toaster position="top-right" reverseOrder={false} duration={4000} />
+
     <BrowserRouter>
-      <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/sitter/:id" element={<FindSitterProfile />} />
-        <Route path="/find" element={<FindSitter />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/review/:bookingId" element={<LeaveReview />} />
 
-        <Route
-          path="/become"
-          element={
-            <ProtectedRoute>
-              <BecomeSitter />
-            </ProtectedRoute>
-          }
-        />
+        {/* ================= ADMIN ================= */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-        <Route
-          path="/my-bookings"
-          element={
-            <ProtectedRoute role="owner">
-              <MyBookings />
-            </ProtectedRoute>
-          }
-        />
-<Route
-  path="/track-walk/:bookingId"
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route
+            path="dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="withdrawals"
+            element={
+              <AdminProtectedRoute>
+                <AdminWithdrawals />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+  path="/admin/users"
   element={
-    <ProtectedRoute role="owner">
-      <OwnerTrackWalk/>
-    </ProtectedRoute>
+    <AdminProtectedRoute>
+      <AdminUsers />
+    </AdminProtectedRoute>
   }
 />
+<Route
+  path="/admin/reviews"
+  element={
+    <AdminProtectedRoute>
+      <AdminReviews />
+    </AdminProtectedRoute>
+  }
+/>
+<Route
+  path="/admin/sitters"
+  element={
+    <AdminProtectedRoute>
+      <AdminSitters />
+    </AdminProtectedRoute>
+  }
+/>
+        </Route>
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute role="sitter">
-              <SitterDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* ================= USER ================= */}
+        <Route element={<UserLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/sitter/:id" element={<FindSitterProfile />} />
+          <Route path="/find" element={<FindSitter />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/review/:bookingId" element={<LeaveReview />} />
 
-        <Route
-          path="/book/:id"
-          element={
-            <ProtectedRoute>
-              <BookSitter />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/become"
+            element={
+              <ProtectedRoute>
+                <BecomeSitter />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-bookings"
+            element={
+              <ProtectedRoute role="owner">
+                <MyBookings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/track-walk/:bookingId"
+            element={
+              <ProtectedRoute role="owner">
+                <OwnerTrackWalk />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute role="sitter">
+                <SitterDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/book/:id"
+            element={
+              <ProtectedRoute>
+                <BookSitter />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
       </Routes>
     </BrowserRouter>
-    </>
+  </>
   );
 }

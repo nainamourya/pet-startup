@@ -37,6 +37,10 @@ const sitterSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    }, 
   },
   { timestamps: true }
 );

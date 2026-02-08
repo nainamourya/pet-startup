@@ -7,12 +7,19 @@ const userSchema = new mongoose.Schema(
     password: String,
     role: { type: String, enum: ["owner", "sitter", "admin"], default: "owner" },
 
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+
     // 👇 Link sitter users to their Sitter profile
     sitterProfile: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Sitter",
     },
+  
   },
+  
   { timestamps: true }
 );
 

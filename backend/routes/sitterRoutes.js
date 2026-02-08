@@ -9,7 +9,10 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   const { city } = req.query;
   const filter = city ? { city: new RegExp(city, "i") } : {};
-  const sitters = await Sitter.find(filter);
+  const sitters = await Sitter.find({
+    ...filter,
+    isActive: true,
+  });
   res.json(sitters);
 });
 
