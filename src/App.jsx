@@ -22,6 +22,7 @@ import AdminUsers from "./admin/pages/AdminUsers.jsx";
 import AdminReviews from "./admin/pages/AdminReviews.jsx";
 import AdminSitters from "./admin/pages/AdminSitters.jsx";
 
+
 export default function App() {
   return (
     <>
@@ -79,6 +80,7 @@ export default function App() {
         {/* ================= USER ================= */}
         <Route element={<UserLayout />}>
           <Route path="/" element={<Home />} />
+
           <Route path="/sitter/:id" element={<FindSitterProfile />} />
           <Route path="/find" element={<FindSitter />} />
           <Route path="/login" element={<Login />} />

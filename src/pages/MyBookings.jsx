@@ -83,13 +83,17 @@ export default function MyBookings() {
         <div className="mt-8 grid gap-4">
           {bookings.map((b) => (
             <div key={b._id} className="p-4 rounded-xl border">
-              <h3 className="font-semibold">
+            <div className="flex items-center gap-4 border-b pb-3 mb-3">
+            <h3 className="font-semibold text-lg text-green-900 flex items-center gap-2">
                 {b.sitterId?.name || "Sitter"}
               </h3>
+            </div>
 
-              <p className="text-sm text-gray-600">
+             <div className="ml-4">
+             <p className="text-sm text-gray-600 ">
                 {b.service}
               </p>
+             </div>
               
       {/* 📍 TRACK WALK BUTTON */}
       {b.service === "Walk" &&

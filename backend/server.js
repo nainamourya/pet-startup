@@ -15,6 +15,8 @@ import authRoutes from "./routes/authRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import paymentRoute from "./routes/paymentRoute.js";
 import withdrawalRoutes from "./routes/withdrawalRoutes.js";
+import Booking from "./models/Booking.js";
+import locationRoute from "./routes/locationRoute.js";
 // admin routes
 import adminAuthRoutes from "./routes/admin/auth.js";
 import adminDashboardRoutes from "./routes/admin/dashboard.js";
@@ -39,6 +41,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/payments", paymentRoute);
 app.use("/api/withdrawals", withdrawalRoutes);
+app.use("/api/location", locationRoute);
 /* ================= ADMIN ROUTES ================= */
 
 // admin login (NO requireAdmin here)
