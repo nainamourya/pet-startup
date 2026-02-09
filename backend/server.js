@@ -31,14 +31,26 @@ import adminReviewRoutes from "./routes/admin/reviews.js";
 import adminSitterRoutes from "./routes/admin/sitters.js";
 const app = express();
 
-// 2. Middleware
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.CLIENT_URL,
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      process.env.CLIENT_URL,
-    ],
+    origin: (origin, callback) => {
+      // allow server-to-server or mobile apps
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("❌ Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 app.use(express.json());
