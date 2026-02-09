@@ -34,15 +34,27 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.CLIENT_URL,
+
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // allow server-to-server or mobile apps
+      // Allow server-to-server, Postman, mobile apps
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // Allow localhost always
+      if (origin.startsWith("http://localhost")) {
+        return callback(null, true);
+      }
+
+      // Allow ALL Vercel frontend URLs
+      if (origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+
+      // Allow your main frontend domain from env
+      if (process.env.CLIENT_URL && origin === process.env.CLIENT_URL) {
         return callback(null, true);
       }
 
@@ -51,8 +63,13 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// 🔥 REQUIRED FOR REGISTER / LOGIN
+app.options("*", cors());
+
 app.use(express.json());
 
 app.use("/api/sitters", sitterRoutes);
@@ -112,11 +129,15 @@ const httpServer = http.createServer(app);
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: [
-      "http://localhost:5173",
-      process.env.CLIENT_URL,
-    ],
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (origin.startsWith("http://localhost")) return callback(null, true);
+      if (origin.includes("vercel.app")) return callback(null, true);
+      if (origin === process.env.CLIENT_URL) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
   },
 });
 const liveWalkLocations = {};
