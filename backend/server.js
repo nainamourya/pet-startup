@@ -78,7 +78,13 @@ app.use(
   requireAdmin,
   adminTestRoutes
 );
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
+app.get("/ping", (req, res) => {
+  res.status(200).send("pong");
+});
 // 3. Routes
 app.get("/", (req, res) => {
   res.send("PetSitter API is running");
@@ -177,6 +183,47 @@ io.on("connection", (socket) => {
     console.log("🔴 Socket disconnected:", socket.id);
   });
 });
+
+// ============================
+// KEEP-ALIVE MECHANISM
+// ============================
+
+const keepServerAlive = () => {
+  // Array of endpoints to ping
+  const endpoints = ["/", "/health", "/ping"];
+
+  // Random interval between 4–5 minutes
+  const getRandomInterval = () =>
+    4 * 60 * 1000 + Math.random() * 60 * 1000;
+
+  const pingServer = async () => {
+    try {
+      const endpoint =
+        endpoints[Math.floor(Math.random() * endpoints.length)];
+
+      // 🔥 USE YOUR SERVER URL
+      const serverUrl =
+        process.env.SERVER_URL ||
+        process.env.RENDER_EXTERNAL_URL ||
+        `http://localhost:${PORT}`;
+
+      await fetch(`${serverUrl}${endpoint}`);
+      console.log(`🔁 Keep-alive pinged: ${endpoint}`);
+    } catch (error) {
+      console.log(
+        `⚠️ Keep-alive request failed:`,
+        error.message
+      );
+    }
+
+    // Schedule next ping
+    setTimeout(pingServer, getRandomInterval());
+  };
+
+  // Start first ping
+  pingServer();
+};
+
 // 4. Configuration constants
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -208,6 +255,8 @@ mongoose
 
     httpServer.listen(PORT, () => {
       console.log(`✓ Server + Socket.IO running on port ${PORT}`);
+      // 🔥 START KEEP ALIVE AFTER EVERYTHING IS READY
+      keepServerAlive();
     });
   })
   .catch((err) => {
