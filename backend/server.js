@@ -68,7 +68,7 @@ app.use(
 );
 
 // 🔥 REQUIRED FOR REGISTER / LOGIN
-app.options("*", cors());
+app.options(/.*/, cors());
 
 app.use(express.json());
 
