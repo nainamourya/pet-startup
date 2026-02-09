@@ -2,6 +2,7 @@ import { useEffect, useState,useRef  } from "react";
 import { useLocation } from "react-router-dom";
 import { socket } from "../socket";
 import toast from "react-hot-toast";
+import API_BASE_URL from "../config/api";
 export default function SitterDashboard() {
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
@@ -128,7 +129,7 @@ useEffect(() => {
     }
 
     const profileRes = await fetch(
-      `http://localhost:5000/api/sitters/${user.sitterProfile}`
+      `${API_BASE_URL}/api/sitters/${user.sitterProfile}`
     );
     const profileData = await profileRes.json();
     console.log("👤 Profile data fetched:", profileData);
@@ -136,7 +137,7 @@ useEffect(() => {
     setProfile(profileData);
 
     const bookingsRes = await fetch(
-      `http://localhost:5000/api/bookings?sitterId=${user.sitterProfile}`
+      `${API_BASE_URL}/api/bookings?sitterId=${user.sitterProfile}`
     );
     const bookingsData = await bookingsRes.json();
     setBookings(bookingsData);
@@ -149,12 +150,12 @@ useEffect(() => {
     setNewCount(fresh.length);
 
     const reviewsRes = await fetch(
-      `http://localhost:5000/api/reviews?sitterId=${user.sitterProfile}`
+      `${API_BASE_URL}/api/reviews?sitterId=${user.sitterProfile}`
     );
     setReviews(await reviewsRes.json());
 
     const availRes = await fetch(
-      `http://localhost:5000/api/sitters/${user.sitterProfile}/availability`
+      `${API_BASE_URL}/api/sitters/${user.sitterProfile}/availability`
     );
     const availData = await availRes.json();
     setAvailableDates(availData.availableDates || []);
@@ -225,7 +226,7 @@ useEffect(() => {
     console.log("🔄 Fetching balance for profile:", profileId);
     console.log("   Profile object:", profile);
     
-    const url = `http://localhost:5000/api/withdrawals/balance/${profileId}`;
+    const url = `${API_BASE_URL}/api/withdrawals/balance/${profileId}`;
     console.log("📍 Fetch URL:", url);
     
     fetch(url)
@@ -251,7 +252,7 @@ useEffect(() => {
      UPDATE BOOKING STATUS
   ========================= */
   const updateStatus = async (id, status) => {
-    await fetch(`http://localhost:5000/api/bookings/${id}`, {
+    await fetch(`${API_BASE_URL}/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
@@ -478,7 +479,7 @@ const confirmedCount = paidBookings.length;
             if (token) headers.Authorization = `Bearer ${token}`;
 
             await fetch(
-              `http://localhost:5000/api/sitters/${profile._id}`,
+              `${API_BASE_URL}/api/sitters/${profile._id}`,
               {
                 method: "PATCH",
                 headers,
@@ -874,7 +875,7 @@ const confirmedCount = paidBookings.length;
           return;
         }
 
-        const res = await fetch("http://localhost:5000/api/withdrawals", {
+        const res = await fetch(`${API_BASE_URL}/api/withdrawals`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

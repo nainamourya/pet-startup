@@ -32,7 +32,15 @@ import adminSitterRoutes from "./routes/admin/sitters.js";
 const app = express();
 
 // 2. Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      process.env.CLIENT_URL,
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.use("/api/sitters", sitterRoutes);
@@ -86,7 +94,10 @@ const httpServer = http.createServer(app);
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      process.env.CLIENT_URL,
+    ],
     methods: ["GET", "POST"],
   },
 });
@@ -196,7 +207,7 @@ mongoose
     }
 
     httpServer.listen(PORT, () => {
-      console.log(`✓ Server + Socket.IO running on http://localhost:${PORT}`);
+      console.log(`✓ Server + Socket.IO running on port ${PORT}`);
     });
   })
   .catch((err) => {

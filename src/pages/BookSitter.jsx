@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-
+import API_BASE_URL from "../config/api";
 export default function BookSitter() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ export default function BookSitter() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/api/bookings", {
+    const res = await fetch(`${API_BASE_URL}/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

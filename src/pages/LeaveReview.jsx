@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import API_BASE_URL from "../config/api";
 
 export default function LeaveReview() {
   const { bookingId } = useParams();
@@ -19,7 +20,7 @@ export default function LeaveReview() {
   
     setLoading(true);
   
-    await fetch("http://localhost:5000/api/reviews", {
+    await fetch(`${API_BASE_URL}/api/reviews`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

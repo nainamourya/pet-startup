@@ -4,15 +4,17 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet"
 import L from "leaflet";
 import { socket } from "../socket";
 import toast from "react-hot-toast";
+import API_BASE_URL from "../config/api";
 
 const getAddressFromCoords = async (lat, lng) => {
   try {
     const res = await fetch(
-      `http://localhost:5000/api/location/reverse-geocode?lat=${lat}&lon=${lng}`
+      `${API_BASE_URL}/api/location/reverse-geocode?lat=${lat}&lon=${lng}`
     );
     const data = await res.json();
     return data.display_name || "Unknown location";
-  } catch {
+  } catch (err) {
+    console.error("Error fetching address:", err);
     return "Unable to fetch address";
   }
 };

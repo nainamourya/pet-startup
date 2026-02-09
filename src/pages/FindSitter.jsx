@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, MapPin, Calendar, PawPrint, Star } from "lucide-react";
+import API_BASE_URL from "../config/api";
 
 export default function FindSitter() {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export default function FindSitter() {
   // ---------- EXISTING LOGIC (UNCHANGED) ----------
   const fetchSitters = async (cityParam, dateParam) => {
     const res = await fetch(
-      `http://localhost:5000/api/sitters?city=${encodeURIComponent(
+      `${API_BASE_URL}/api/sitters?city=${encodeURIComponent(
         cityParam.trim()
       )}`
     );
@@ -38,7 +39,7 @@ export default function FindSitter() {
       available.map(async (s) => {
         try {
           const r = await fetch(
-            `http://localhost:5000/api/reviews?sitterId=${s._id}`
+            `${API_BASE_URL}/api/reviews?sitterId=${s._id}`
           );
           const reviews = await r.json();
 

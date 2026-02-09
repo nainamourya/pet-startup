@@ -1,7 +1,8 @@
+import API_BASE_URL from "../config/api";
 export const openRazorpay = async ({ amount, bookingId }) => {
   try {
     // 1️⃣ Create Razorpay order
-    const res = await fetch("http://localhost:5000/api/payments/create-order", {
+    const res = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount, bookingId }),
@@ -43,7 +44,7 @@ export const openRazorpay = async ({ amount, bookingId }) => {
         try {
           console.log("✅ Payment successful! Response:", response);
 
-          const verifyRes = await fetch("http://localhost:5000/api/payments/verify", {
+          const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

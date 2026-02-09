@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import API_BASE_URL from "../config/api";
 import {
   User,
   MapPin,
@@ -45,7 +46,7 @@ export default function BecomeSitter() {
       return;
     }
 
-    const res = await fetch("http://localhost:5000/api/sitters", {
+    const res = await fetch(`${API_BASE_URL}/api/sitters`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -112,7 +113,7 @@ export default function BecomeSitter() {
   
         try {
           const res = await fetch(
-            `http://localhost:5000/api/location/reverse-geocode?lat=${latitude}&lon=${longitude}`
+            `${API_BASE_URL}/api/location/reverse-geocode?lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
   

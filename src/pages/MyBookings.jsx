@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { openRazorpay } from "../utils/razorpayPayment";
 import { Link } from "react-router-dom";
-
+import API_BASE_URL from "../config/api";
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function MyBookings() {
 
     const ownerId = user._id || user.id;
     const res = await fetch(
-      `http://localhost:5000/api/bookings?ownerId=${ownerId}`
+      `${API_BASE_URL}/api/bookings?ownerId=${ownerId}`
     );
     try {
       const data = await res.json();

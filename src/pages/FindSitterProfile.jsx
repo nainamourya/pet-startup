@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-
+import API_BASE_URL from "../config/api";
 export default function FindSitterProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -16,14 +16,14 @@ export default function FindSitterProfile() {
       try {
         setLoading(true);
 
-        const s = await fetch(`http://localhost:5000/api/sitters/${id}`);
+        const s = await fetch(`${API_BASE_URL}/api/sitters/${id}`);
         const sitterData = await s.json();
 
-        const r = await fetch(`http://localhost:5000/api/reviews?sitterId=${id}`);
+        const r = await fetch(`${API_BASE_URL}/api/reviews?sitterId=${id}`);
         const reviewData = await r.json();
 
         const b = await fetch(
-          `http://localhost:5000/api/bookings?sitterId=${id}`
+          `${API_BASE_URL}/api/bookings?sitterId=${id}`
         );
         const bookingData = await b.json();
 
