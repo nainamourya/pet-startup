@@ -27,12 +27,8 @@ export default function SitterDashboard() {
   
   // Ensure sitterId is always a valid string, not undefined or placeholder
   const getSitterId = () => {
-    const id = user?.sitterProfile;
-    if (!id || typeof id !== 'string' || id.length !== 24) {
-      console.warn('⚠️ Invalid sitterId format:', id, 'Length:', id?.length);
-      return null;
-    }
-    return id;
+    if (!profile?._id) return null;
+    return String(profile._id);
   };
   
   const sitterId = getSitterId();
@@ -122,6 +118,12 @@ const saveBankDetails = async () => {
     toast.error("Something went wrong");
   }
 };
+
+useEffect(() => {
+  if (profile?.bankDetails?.accountNumber) {
+    setBankSaved(true);
+  }
+}, [profile]);
 /* =========================
    RESUME WALK AFTER REFRESH 🔁
 ========================= */
