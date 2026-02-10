@@ -65,7 +65,7 @@ router.post("/bank-details", requireAuth, async (req, res) => {
       return res.status(400).json({ message: "All bank fields are required" });
     }
 
-    // ✅ FIX: Find sitter by the sitterProfile ID from the authenticated user
+    // Get user and their sitter profile
     const user = await User.findById(req.user.id);
     
     if (!user || !user.sitterProfile) {
@@ -73,9 +73,10 @@ router.post("/bank-details", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Sitter profile not found" });
     }
 
-    console.log("🔍 Looking for sitter with ID:", user.sitterProfile);
+    console.log("🔍 User sitterProfile ID:", user.sitterProfile);
+    console.log("🔍 SitterProfile type:", typeof user.sitterProfile);
 
-    // ✅ FIX: Use the sitterProfile ID instead of userId
+    // Find the sitter
     const sitter = await Sitter.findById(user.sitterProfile);
 
     if (!sitter) {
@@ -83,7 +84,8 @@ router.post("/bank-details", requireAuth, async (req, res) => {
       return res.status(404).json({ message: "Sitter profile not found" });
     }
 
-    console.log("✅ Found sitter:", sitter._id);
+    console.log("✅ Found sitter with ID:", sitter._id);
+    console.log("📋 Sitter BEFORE update:", JSON.stringify(sitter, null, 2));
 
     // Update bank details
     sitter.bankDetails = {
@@ -94,19 +96,26 @@ router.post("/bank-details", requireAuth, async (req, res) => {
       verified: false,
     };
 
-    await sitter.save();
+    console.log("📝 Bank details to save:", sitter.bankDetails);
 
-    console.log("✅ Bank details saved successfully");
-    console.log("💾 Saved data:", sitter.bankDetails);
+    // Save to database
+    const savedSitter = await sitter.save();
 
-    // ✅ FIX: Return the bankDetails so frontend can update the UI
+    console.log("✅ Sitter AFTER save:", JSON.stringify(savedSitter, null, 2));
+    console.log("💾 Saved bank details:", savedSitter.bankDetails);
+
+    // Verify it's actually in the database
+    const verifyCheck = await Sitter.findById(sitter._id);
+    console.log("🔎 VERIFICATION CHECK - Bank details in DB:", verifyCheck.bankDetails);
+
     res.json({ 
       message: "Bank details saved successfully",
-      bankDetails: sitter.bankDetails 
+      bankDetails: savedSitter.bankDetails 
     });
     
   } catch (err) {
     console.error("❌ Error saving bank details:", err);
+    console.error("❌ Error stack:", err.stack);
     res.status(500).json({ message: "Failed to save bank details" });
   }
 });
