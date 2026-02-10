@@ -52,6 +52,64 @@ router.post("/", async (req, res) => {
   res.json({ sitter });
 });
 
+
+router.post("/bank-details", requireAuth, async (req, res) => {
+  try {
+    console.log("🔥 Bank details route hit");
+    console.log("📦 Request body:", req.body);
+    console.log("👤 Authenticated user:", req.user);
+
+    const { accountHolderName, accountNumber, ifsc, bankName } = req.body;
+
+    if (!accountHolderName || !accountNumber || !ifsc) {
+      return res.status(400).json({ message: "All bank fields are required" });
+    }
+
+    // ✅ FIX: Find sitter by the sitterProfile ID from the authenticated user
+    const user = await User.findById(req.user.id);
+    
+    if (!user || !user.sitterProfile) {
+      console.log("❌ No sitter profile found for user");
+      return res.status(404).json({ message: "Sitter profile not found" });
+    }
+
+    console.log("🔍 Looking for sitter with ID:", user.sitterProfile);
+
+    // ✅ FIX: Use the sitterProfile ID instead of userId
+    const sitter = await Sitter.findById(user.sitterProfile);
+
+    if (!sitter) {
+      console.log("❌ Sitter not found in database");
+      return res.status(404).json({ message: "Sitter profile not found" });
+    }
+
+    console.log("✅ Found sitter:", sitter._id);
+
+    // Update bank details
+    sitter.bankDetails = {
+      accountHolderName,
+      accountNumber,
+      ifsc,
+      bankName,
+      verified: false,
+    };
+
+    await sitter.save();
+
+    console.log("✅ Bank details saved successfully");
+    console.log("💾 Saved data:", sitter.bankDetails);
+
+    // ✅ FIX: Return the bankDetails so frontend can update the UI
+    res.json({ 
+      message: "Bank details saved successfully",
+      bankDetails: sitter.bankDetails 
+    });
+    
+  } catch (err) {
+    console.error("❌ Error saving bank details:", err);
+    res.status(500).json({ message: "Failed to save bank details" });
+  }
+});
 // GET /api/sitters/:id/availability
 router.get("/:id/availability", async (req, res) => {
   try {
@@ -126,38 +184,5 @@ router.patch("/:id", requireAuth, async (req, res) => {
   }
 });
 // ADD / UPDATE BANK DETAILS
-router.post(
-  "/bank-details",
-  requireAuth,
-  async (req, res) => {
-    try {
-      const { accountHolderName, accountNumber, ifsc, bankName } = req.body;
 
-      if (!accountHolderName || !accountNumber || !ifsc) {
-        return res.status(400).json({ message: "All bank fields are required" });
-      }
-
-      const sitter = await Sitter.findOne({ userId: req.user.id });
-
-      if (!sitter) {
-        return res.status(404).json({ message: "Sitter profile not found" });
-      }
-
-      sitter.bankDetails = {
-        accountHolderName,
-        accountNumber,
-        ifsc,
-        bankName,
-        verified: false,
-      };
-
-      await sitter.save();
-
-      res.json({ message: "Bank details saved successfully" });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Failed to save bank details" });
-    }
-  }
-);
 export default router;

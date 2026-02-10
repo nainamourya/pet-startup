@@ -14,6 +14,7 @@ export default function SitterDashboard() {
   const [balance, setBalance] = useState(null);
   const brand = "#ff9b7a";
   const [availableDates, setAvailableDates] = useState([]);
+
   const [activeWalkId, setActiveWalkId] = useState(
     () => localStorage.getItem("activeWalkId")
   );
@@ -78,9 +79,12 @@ const [bankForm, setBankForm] = useState({
   ifsc: "",
   bankName: "",
 });
-const [bankSaved, setBankSaved] = useState(false);
+
 
 const saveBankDetails = async () => {
+  console.log("🔥 saveBankDetails CALLED");
+  console.log("🔥 Bank form:", bankForm);
+  
   if (
     !bankForm.accountHolderName ||
     !bankForm.accountNumber ||
@@ -106,24 +110,33 @@ const saveBankDetails = async () => {
     );
 
     const data = await res.json();
+    console.log("📊 Response data:", data);
 
     if (!res.ok) {
+      console.error("❌ Error response:", data);
       toast.error(data.message || "Failed to save bank details");
       return;
     }
 
+    // ✅ SYNC PROFILE STATE
+    setProfile((prev) => ({ ...prev, bankDetails: data.bankDetails }));
+
     toast.success("Bank details saved successfully");
-    setBankSaved(true);
+    
+    // Clear the form
+    setBankForm({
+      accountHolderName: "",
+      accountNumber: "",
+      ifsc: "",
+      bankName: "",
+    });
   } catch (err) {
+    console.error("❌ Error:", err);
     toast.error("Something went wrong");
   }
 };
 
-useEffect(() => {
-  if (profile?.bankDetails?.accountNumber) {
-    setBankSaved(true);
-  }
-}, [profile]);
+
 /* =========================
    RESUME WALK AFTER REFRESH 🔁
 ========================= */
@@ -184,7 +197,7 @@ useEffect(() => {
     console.log("👤 Profile data fetched:", profileData);
     console.log("🔑 Profile ID from API:", profileData._id, "Length:", profileData._id?.length);
     setProfile(profileData);
-
+    
     const bookingsRes = await fetch(
       `${API_BASE_URL}/api/bookings?sitterId=${user.sitterProfile}`
     );
@@ -906,10 +919,11 @@ const confirmedCount = paidBookings.length;
         </div>
       )}
       {/* ================= BANK DETAILS ================= */}
+{/* ================= BANK DETAILS ================= */}
 <div className="mt-10 p-6 rounded-2xl border bg-white shadow-sm">
   <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
 
-  {bankSaved ? (
+  {profile?.bankDetails?.accountHolderName ? (
     <div className="space-y-2 text-sm text-gray-700">
       <p>
         <b>Account Holder:</b>{" "}
@@ -931,6 +945,7 @@ const confirmedCount = paidBookings.length;
       <input
         className="w-full border p-3 rounded"
         placeholder="Account Holder Name"
+        value={bankForm.accountHolderName}
         onChange={(e) =>
           setBankForm({
             ...bankForm,
@@ -943,6 +958,7 @@ const confirmedCount = paidBookings.length;
         className="w-full border p-3 rounded"
         placeholder="Account Number"
         inputMode="numeric"
+        value={bankForm.accountNumber}
         onChange={(e) =>
           setBankForm({
             ...bankForm,
@@ -954,6 +970,7 @@ const confirmedCount = paidBookings.length;
       <input
         className="w-full border p-3 rounded uppercase"
         placeholder="IFSC Code (e.g. SBIN0001234)"
+        value={bankForm.ifsc}
         onChange={(e) =>
           setBankForm({
             ...bankForm,
@@ -965,6 +982,7 @@ const confirmedCount = paidBookings.length;
       <input
         className="w-full border p-3 rounded"
         placeholder="Bank Name (optional)"
+        value={bankForm.bankName}
         onChange={(e) =>
           setBankForm({
             ...bankForm,
@@ -974,7 +992,10 @@ const confirmedCount = paidBookings.length;
       />
 
       <button
-        onClick={saveBankDetails}
+        onClick={() => {
+          console.log("Bank form data:", bankForm);
+          saveBankDetails();
+        }}
         className="mt-3 px-5 py-2 rounded-full bg-black text-white text-sm hover:opacity-90"
       >
         Save Bank Details

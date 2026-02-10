@@ -41,6 +41,7 @@ const sitterSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     }, 
+    
     bankDetails: {
       accountHolderName: { type: String },
       accountNumber: { type: String },
