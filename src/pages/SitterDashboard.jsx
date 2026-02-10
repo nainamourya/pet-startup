@@ -75,6 +75,53 @@ const endWalk = (bookingId) => {
   setActiveWalkId(null);
   toast.success("Walk ended successfully 🏁");
 };
+
+const [bankForm, setBankForm] = useState({
+  accountHolderName: "",
+  accountNumber: "",
+  ifsc: "",
+  bankName: "",
+});
+const [bankSaved, setBankSaved] = useState(false);
+
+const saveBankDetails = async () => {
+  if (
+    !bankForm.accountHolderName ||
+    !bankForm.accountNumber ||
+    !bankForm.ifsc
+  ) {
+    toast.error("All bank fields are required");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/sitters/bank-details`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(bankForm),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error(data.message || "Failed to save bank details");
+      return;
+    }
+
+    toast.success("Bank details saved successfully");
+    setBankSaved(true);
+  } catch (err) {
+    toast.error("Something went wrong");
+  }
+};
 /* =========================
    RESUME WALK AFTER REFRESH 🔁
 ========================= */
@@ -856,6 +903,83 @@ const confirmedCount = paidBookings.length;
         ))}
         </div>
       )}
+      {/* ================= BANK DETAILS ================= */}
+<div className="mt-10 p-6 rounded-2xl border bg-white shadow-sm">
+  <h2 className="text-xl font-semibold mb-4">Bank Details</h2>
+
+  {bankSaved ? (
+    <div className="space-y-2 text-sm text-gray-700">
+      <p>
+        <b>Account Holder:</b>{" "}
+        {profile.bankDetails?.accountHolderName}
+      </p>
+      <p>
+        <b>Account Number:</b> ****
+        {profile.bankDetails?.accountNumber?.slice(-4)}
+      </p>
+      <p>
+        <b>IFSC:</b> {profile.bankDetails?.ifsc}
+      </p>
+      <p className="text-xs text-green-600 mt-2">
+        ✅ Bank details added
+      </p>
+    </div>
+  ) : (
+    <div className="space-y-3">
+      <input
+        className="w-full border p-3 rounded"
+        placeholder="Account Holder Name"
+        onChange={(e) =>
+          setBankForm({
+            ...bankForm,
+            accountHolderName: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="w-full border p-3 rounded"
+        placeholder="Account Number"
+        inputMode="numeric"
+        onChange={(e) =>
+          setBankForm({
+            ...bankForm,
+            accountNumber: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="w-full border p-3 rounded uppercase"
+        placeholder="IFSC Code (e.g. SBIN0001234)"
+        onChange={(e) =>
+          setBankForm({
+            ...bankForm,
+            ifsc: e.target.value.toUpperCase(),
+          })
+        }
+      />
+
+      <input
+        className="w-full border p-3 rounded"
+        placeholder="Bank Name (optional)"
+        onChange={(e) =>
+          setBankForm({
+            ...bankForm,
+            bankName: e.target.value,
+          })
+        }
+      />
+
+      <button
+        onClick={saveBankDetails}
+        className="mt-3 px-5 py-2 rounded-full bg-black text-white text-sm hover:opacity-90"
+      >
+        Save Bank Details
+      </button>
+    </div>
+  )}
+</div>
 {balance && (
   <div className="mt-6 p-5 border rounded-xl bg-white">
     <p className="text-sm text-gray-500">Available Balance</p>
@@ -867,11 +991,10 @@ const confirmedCount = paidBookings.length;
       onClick={async () => {
         const amount = prompt("Enter withdrawal amount");
         if (!amount) return;
-        
-        // Validate sitterId before sending
+
         const validSitterId = getSitterId();
         if (!validSitterId) {
-          toast.error("Error: Sitter profile not properly loaded. Please refresh and try again.");
+          toast.error("Sitter profile not loaded properly");
           return;
         }
 
@@ -896,6 +1019,7 @@ const confirmedCount = paidBookings.length;
     </button>
   </div>
 )}
+
       {/* Reviews */}
       <h2 className="text-xl font-semibold mt-12">Your Reviews</h2>
 

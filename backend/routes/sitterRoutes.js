@@ -125,5 +125,39 @@ router.patch("/:id", requireAuth, async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 });
+// ADD / UPDATE BANK DETAILS
+router.post(
+  "/bank-details",
+  requireAuth,
+  async (req, res) => {
+    try {
+      const { accountHolderName, accountNumber, ifsc, bankName } = req.body;
 
+      if (!accountHolderName || !accountNumber || !ifsc) {
+        return res.status(400).json({ message: "All bank fields are required" });
+      }
+
+      const sitter = await Sitter.findOne({ userId: req.user.id });
+
+      if (!sitter) {
+        return res.status(404).json({ message: "Sitter profile not found" });
+      }
+
+      sitter.bankDetails = {
+        accountHolderName,
+        accountNumber,
+        ifsc,
+        bankName,
+        verified: false,
+      };
+
+      await sitter.save();
+
+      res.json({ message: "Bank details saved successfully" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Failed to save bank details" });
+    }
+  }
+);
 export default router;
