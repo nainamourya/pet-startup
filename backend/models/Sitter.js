@@ -42,12 +42,52 @@ const sitterSchema = new mongoose.Schema(
       default: true,
     }, 
     
+    // 🏦 Professional Bank Details
     bankDetails: {
-      accountHolderName: { type: String },
-      accountNumber: { type: String },
-      ifsc: { type: String },
-      bankName: { type: String },
-      verified: { type: Boolean, default: false },
+      accountHolderName: { 
+        type: String,
+        trim: true
+      },
+      accountNumber: { 
+        type: String,
+        trim: true
+      },
+      ifscCode: { 
+        type: String,
+        uppercase: true,
+        trim: true
+      },
+      bankName: { 
+        type: String,
+        trim: true
+      },
+      branchName: { 
+        type: String,
+        trim: true,
+        default: ""
+      },
+      accountType: { 
+        type: String,
+        enum: ["savings", "current"],
+        default: "savings"
+      },
+      verified: { 
+        type: Boolean, 
+        default: false 
+      },
+      verifiedAt: {
+        type: Date
+      },
+      addedAt: {
+        type: Date,
+        default: Date.now
+      },
+      // Store verification documents (optional for future use)
+      documents: [{
+        type: { type: String }, // "cancelled_cheque", "passbook", etc.
+        url: String,
+        uploadedAt: { type: Date, default: Date.now }
+      }]
     }
   },
   { timestamps: true }

@@ -53,70 +53,96 @@ router.post("/", async (req, res) => {
 });
 
 
+// Add this route to your sitters.js route file
+
+// POST /api/sitters/bank-details (Professional bank details endpoint)
 router.post("/bank-details", requireAuth, async (req, res) => {
   try {
-    console.log("🔥 Bank details route hit");
-    console.log("📦 Request body:", req.body);
-    console.log("👤 Authenticated user:", req.user);
+    console.log("🏦 Bank details submission received");
+    
+    const { 
+      accountHolderName, 
+      accountNumber, 
+      ifscCode, 
+      bankName, 
+      branchName, 
+      accountType 
+    } = req.body;
 
-    const { accountHolderName, accountNumber, ifsc, bankName } = req.body;
-
-    if (!accountHolderName || !accountNumber || !ifsc) {
-      return res.status(400).json({ message: "All bank fields are required" });
+    // Validation
+    if (!accountHolderName || !accountNumber || !ifscCode || !bankName) {
+      return res.status(400).json({ 
+        message: "Account holder name, account number, IFSC code, and bank name are required" 
+      });
     }
 
-    // Get user and their sitter profile
+    // Validate IFSC format (4 letters + 0 + 6 alphanumeric)
+    const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    if (!ifscRegex.test(ifscCode.toUpperCase())) {
+      return res.status(400).json({ 
+        message: "Invalid IFSC code format" 
+      });
+    }
+
+    // Validate account number (9-18 digits)
+    const accountRegex = /^\d{9,18}$/;
+    if (!accountRegex.test(accountNumber)) {
+      return res.status(400).json({ 
+        message: "Account number must be between 9 and 18 digits" 
+      });
+    }
+
+    // Get user and sitter profile
     const user = await User.findById(req.user.id);
     
     if (!user || !user.sitterProfile) {
-      console.log("❌ No sitter profile found for user");
-      return res.status(404).json({ message: "Sitter profile not found" });
+      return res.status(404).json({ 
+        message: "Sitter profile not found for this user" 
+      });
     }
 
-    console.log("🔍 User sitterProfile ID:", user.sitterProfile);
-    console.log("🔍 SitterProfile type:", typeof user.sitterProfile);
-
-    // Find the sitter
+    // Find and update sitter
     const sitter = await Sitter.findById(user.sitterProfile);
 
     if (!sitter) {
-      console.log("❌ Sitter not found in database");
-      return res.status(404).json({ message: "Sitter profile not found" });
+      return res.status(404).json({ 
+        message: "Sitter profile not found in database" 
+      });
     }
-
-    console.log("✅ Found sitter with ID:", sitter._id);
-    console.log("📋 Sitter BEFORE update:", JSON.stringify(sitter, null, 2));
 
     // Update bank details
     sitter.bankDetails = {
-      accountHolderName,
-      accountNumber,
-      ifsc,
-      bankName,
-      verified: false,
+      accountHolderName: accountHolderName.trim(),
+      accountNumber: accountNumber,
+      ifscCode: ifscCode.toUpperCase(),
+      bankName: bankName.trim(),
+      branchName: branchName ? branchName.trim() : "",
+      accountType: accountType || "savings",
+      verified: false, // Will be verified by admin later
+      addedAt: new Date()
     };
 
-    console.log("📝 Bank details to save:", sitter.bankDetails);
+    await sitter.save();
 
-    // Save to database
-    const savedSitter = await sitter.save();
+    console.log("✅ Bank details saved successfully for sitter:", sitter._id);
 
-    console.log("✅ Sitter AFTER save:", JSON.stringify(savedSitter, null, 2));
-    console.log("💾 Saved bank details:", savedSitter.bankDetails);
-
-    // Verify it's actually in the database
-    const verifyCheck = await Sitter.findById(sitter._id);
-    console.log("🔎 VERIFICATION CHECK - Bank details in DB:", verifyCheck.bankDetails);
+    // Return sanitized data (hide full account number in response)
+    const sanitizedBankDetails = {
+      ...sitter.bankDetails.toObject(),
+      accountNumber: sitter.bankDetails.accountNumber // Frontend will handle masking
+    };
 
     res.json({ 
       message: "Bank details saved successfully",
-      bankDetails: savedSitter.bankDetails 
+      bankDetails: sanitizedBankDetails
     });
     
   } catch (err) {
     console.error("❌ Error saving bank details:", err);
-    console.error("❌ Error stack:", err.stack);
-    res.status(500).json({ message: "Failed to save bank details" });
+    res.status(500).json({ 
+      message: "Failed to save bank details",
+      error: err.message 
+    });
   }
 });
 // GET /api/sitters/:id/availability
