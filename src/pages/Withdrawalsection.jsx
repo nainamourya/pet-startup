@@ -8,7 +8,7 @@ export default function WithdrawalSection({ profile }) {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawalHistory, setWithdrawalHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-
+  const availableBalance = balance ? Math.max(0, balance.availableBalance) : 0;
   // Withdrawal form state
   const [withdrawalForm, setWithdrawalForm] = useState({
     amount: "",
@@ -257,51 +257,57 @@ export default function WithdrawalSection({ profile }) {
   return (
     <>
       {/* Balance Card */}
-      <div className="mt-10 p-6 rounded-2xl border bg-gradient-to-br from-white to-gray-50 shadow-sm">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">Available Balance</p>
-            <p className="text-4xl font-bold text-gray-900">
-              ₹{balance.availableBalance?.toLocaleString()}
-            </p>
+      {/* Balance Card */}
+<div className="mt-10 p-6 rounded-2xl border bg-gradient-to-br from-white to-gray-50 shadow-sm">
+  <div className="flex justify-between items-start">
+    <div>
+      <p className="text-sm text-gray-500 mb-1">Available Balance</p>
+      <p className="text-4xl font-bold text-gray-900">
+        ₹{balance.availableBalance?.toLocaleString()}
+      </p>
 
-            <div className="mt-4 flex gap-4 text-sm">
-              <div>
-                <p className="text-gray-500">Total Earnings</p>
-                <p className="font-semibold">₹{balance.totalEarnings?.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Withdrawn</p>
-                <p className="font-semibold">₹{balance.withdrawnAmount?.toLocaleString()}</p>
-              </div>
-            </div>
-
-            {balance.pendingWithdrawals > 0 && (
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                </svg>
-                {balance.pendingWithdrawals} pending withdrawal{balance.pendingWithdrawals > 1 ? "s" : ""}
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={() => setShowWithdrawModal(true)}
-            disabled={balance.availableBalance < balance.limits.minWithdrawal}
-            className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
-            style={{ backgroundColor: brand }}
-          >
-            Withdraw Money
-          </button>
+      <div className="mt-4 flex gap-4 text-sm">
+        <div>
+          <p className="text-gray-500">Total Earnings</p>
+          <p className="font-semibold">₹{balance.totalEarnings?.toLocaleString()}</p>
         </div>
-
-        {balance.availableBalance < balance.limits.minWithdrawal && (
-          <div className="mt-4 p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
-            ℹ️ Minimum withdrawal amount is ₹{balance.limits.minWithdrawal}
-          </div>
-        )}
+        <div>
+          <p className="text-gray-500">Withdrawn</p>
+          <p className="font-semibold">₹{balance.withdrawnAmount?.toLocaleString()}</p>
+        </div>
       </div>
+
+      {balance.pendingWithdrawals > 0 && (
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs">
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+          </svg>
+          {balance.pendingWithdrawals} pending withdrawal{balance.pendingWithdrawals > 1 ? "s" : ""}
+        </div>
+      )}
+    </div>
+
+    {/* ✅ FIXED BUTTON */}
+    <button
+      onClick={() => setShowWithdrawModal(true)}
+      disabled={balance.availableBalance < balance.limits.minWithdrawal}
+      className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:grayscale"
+      style={{ 
+        backgroundColor: balance.availableBalance < balance.limits.minWithdrawal 
+          ? '#9ca3af' // Gray when disabled
+          : brand 
+      }}
+    >
+      Withdraw Money
+    </button>
+  </div>
+
+  {balance.availableBalance < balance.limits.minWithdrawal && (
+    <div className="mt-4 p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
+      ℹ️ Minimum withdrawal amount is ₹{balance.limits.minWithdrawal}
+    </div>
+  )}
+</div>
 
       {/* Withdrawal History */}
       <div className="mt-8 p-6 rounded-2xl border bg-white">
@@ -402,13 +408,18 @@ export default function WithdrawalSection({ profile }) {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Withdraw Money</h2>
                 <button
-                  onClick={() => setShowWithdrawModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+  onClick={() => setShowWithdrawModal(true)}
+  disabled={balance.availableBalance < balance.limits.minWithdrawal}
+  className="px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale hover:scale-105 disabled:hover:scale-100"
+  style={{ 
+    backgroundColor: balance.availableBalance < balance.limits.minWithdrawal 
+      ? '#d1d5db' // gray color when disabled
+      : brand,
+    color: 'white'
+  }}
+>
+  Withdraw Money
+</button>
               </div>
 
               {/* Amount Input */}

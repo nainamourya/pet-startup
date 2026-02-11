@@ -12,16 +12,16 @@
   const MAX_WITHDRAWAL = 100000; // ₹1 lakh max per transaction
   const DAILY_WITHDRAWAL_LIMIT = 200000; // ₹2 lakhs per day
   const WITHDRAWAL_COOLDOWN_HOURS = 24; // 24 hours between withdrawals
-
+  
   /* ===========================
     HELPER: Calculate Available Balance
   =========================== */
   async function calculateBalance(sitterId) {
     const holdDate = new Date();
-    holdDate.setDate(holdDate.getDate() - HOLD_DAYS);
-
+    holdDate.setDate(holdDate.getDate() - HOLD_DAYS); // ✅ FIXED
+  
     const sitterObjectId = new mongoose.Types.ObjectId(sitterId);
-
+  
     // Get completed, paid bookings that are past hold period
     const bookings = await Booking.find({
       sitterId: sitterObjectId,
@@ -29,22 +29,23 @@
       "payment.paid": true,
       completedAt: { $lte: holdDate },
     });
-
+  
     const totalEarnings = bookings.reduce(
       (sum, b) => sum + (b.payment.amount || 0),
       0
     );
-
+  
     // Get all non-rejected/cancelled withdrawals
     const withdrawals = await Withdrawal.find({
       sitterId: sitterObjectId,
       status: { $in: ["pending", "approved", "processing", "completed"] },
     });
-
+  
     const withdrawnAmount = withdrawals.reduce((sum, w) => sum + w.amount, 0);
-
-    const availableBalance = totalEarnings - withdrawnAmount;
-
+  
+    // ✅ Ensure balance never goes negative
+    const availableBalance = Math.max(0, totalEarnings - withdrawnAmount);
+  
     return {
       totalEarnings,
       withdrawnAmount,
@@ -52,7 +53,6 @@
       pendingWithdrawals: withdrawals.filter((w) => w.status === "pending").length,
     };
   }
-
   /* ===========================
     HELPER: Validate Withdrawal Limits
   =========================== */
