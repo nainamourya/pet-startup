@@ -364,8 +364,6 @@ useEffect(() => {
           </div>
 
           {/* EARNINGS CHART */}
-          
-          {/* EARNINGS CHART */}
           <div className="mb-8 p-8 rounded-3xl bg-white border border-gray-100 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <div>
@@ -602,237 +600,261 @@ useEffect(() => {
               </div>
             ) : (
               <div className="grid gap-6">
-                {bookings.map((b) => (
-                  <div
-                    key={b._id}
-                    className="p-6 rounded-3xl bg-white border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    {/* HEADER */}
-                    <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-orange-100 to-pink-100">
-                          <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
+                {bookings.map((b) => {
+                  const isAwaitingPayment = b.status === "confirmed" && !b.payment?.paid;
+
+                  return (
+                    <div key={b._id} className="p-6 rounded-3xl bg-white border border-gray-100 shadow-md hover:shadow-xl transition-all">
+                      {/* HEADER */}
+                      <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-start gap-4">
+                          <div className="p-3 rounded-xl bg-gradient-to-br from-orange-100 to-pink-100">
+                            <svg
+                              className="w-6 h-6 text-orange-600"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
+                          </div>
+
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900">
+                              {b.ownerId?.name || "Pet Owner"}
+                            </h3>
+
+                            <p className="text-sm text-gray-500 mt-1">
+                              {b.service} •{" "}
+                              {b.walk
+                                ? `${b.walk.date} (${b.walk.from}:00 – ${b.walk.to}:00)`
+                                : b.date}
+                            </p>
+
+                            {activeWalkId === b._id && (
+                              <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                Walking in progress
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">
-                            {b.ownerId?.name || "Pet Owner"}
-                          </h3>
-                          <p className="text-sm text-gray-500 mt-1">
-                            {b.service} •{" "}
-                            {b.walk
-                              ? `${b.walk.date} (${b.walk.from}:00 – ${b.walk.to}:00)`
-                              : b.date}
-                          </p>
-                          {activeWalkId === b._id && (
-                            <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                              Walking in progress
-                            </span>
+
+                        {/* RIGHT SIDE STATUS */}
+                        <div className="flex flex-col items-end">
+                          <span
+                            className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide"
+                            style={{
+                              backgroundColor: isAwaitingPayment
+                                ? "#fef3c7"
+                                : b.status === "pending"
+                                ? "#fef3c7"
+                                : b.status === "confirmed"
+                                ? "#d1fae5"
+                                : b.status === "completed"
+                                ? "#dbeafe"
+                                : "#fee2e2",
+                              color: isAwaitingPayment
+                                ? "#92400e"
+                                : b.status === "pending"
+                                ? "#92400e"
+                                : b.status === "confirmed"
+                                ? "#065f46"
+                                : b.status === "completed"
+                                ? "#1e40af"
+                                : "#991b1b",
+                            }}
+                          >
+                            {isAwaitingPayment ? "Awaiting Payment" : b.status}
+                          </span>
+
+                          {isAwaitingPayment && (
+                            <p className="text-sm font-semibold text-amber-600 mt-2">
+                              ₹{b.payment?.amount || b.servicePrice || b.sitterId?.price} pending
+                            </p>
                           )}
                         </div>
                       </div>
 
-                      {/* STATUS BADGE */}
-                      <span
-                        className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide"
-                        style={{
-                          backgroundColor:
-                            b.status === "pending"
-                              ? "#fef3c7"
-                              : b.status === "confirmed"
-                              ? "#d1fae5"
-                              : b.status === "completed"
-                              ? "#dbeafe"
-                              : "#fee2e2",
-                          color:
-                            b.status === "pending"
-                              ? "#92400e"
-                              : b.status === "confirmed"
-                              ? "#065f46"
-                              : b.status === "completed"
-                              ? "#1e40af"
-                              : "#991b1b",
-                        }}
-                      >
-                        {b.status}
-                      </span>
-                    </div>
+                      {/* PROGRESS TRACKER */}
+                      <div className="mb-6 p-4 rounded-2xl bg-gray-50">
+                        <div className="relative flex items-center justify-between">
+                          {/* Base line */}
+                          <div className="absolute left-0 right-0 top-1/2 h-1 bg-gray-200 rounded-full" />
 
-                    {/* PROGRESS TRACKER */}
-                    <div className="mb-6 p-4 rounded-2xl bg-gray-50">
-                      <div className="relative flex items-center justify-between">
-                        {/* Base line */}
-                        <div className="absolute left-0 right-0 top-1/2 h-1 bg-gray-200 rounded-full" />
-
-                        {/* Progress line */}
-                        <div
-                          className="absolute left-0 top-1/2 h-1 transition-all duration-700 rounded-full"
-                          style={{
-                            width: 
-                              b.status === "pending" ? "0%" :
-                              b.status === "confirmed" ? "50%" :
-                              b.status === "completed" ? "100%" : "0%",
-                            backgroundColor: b.status === "rejected" ? "#ef4444" : brand,
-                          }}
-                        />
-
-                        {/* Step 1 - Requested */}
-                        <div className="relative z-10 flex flex-col items-center">
+                          {/* Progress line */}
                           <div
-                            className="w-4 h-4 rounded-full border-4 border-white shadow-md"
-                            style={{ backgroundColor: brand }}
-                          />
-                          <span className="text-xs font-medium mt-2 text-gray-600">
-                            Requested
-                          </span>
-                        </div>
-
-                        {/* Step 2 - Confirmed */}
-                        <div className="relative z-10 flex flex-col items-center">
-                          <div
-                            className="w-4 h-4 rounded-full border-4 border-white shadow-md transition-all duration-500"
+                            className="absolute left-0 top-1/2 h-1 transition-all duration-700 rounded-full"
                             style={{
-                              backgroundColor:
-                                b.status === "pending"
-                                  ? "#e5e7eb"
-                                  : b.status === "rejected"
-                                  ? "#ef4444"
-                                  : brand,
+                              width: 
+                                b.status === "pending" ? "0%" :
+                                b.status === "confirmed" ? "50%" :
+                                b.status === "completed" ? "100%" : "0%",
+                              backgroundColor: b.status === "rejected" ? "#ef4444" : brand,
                             }}
                           />
-                          <span className="text-xs font-medium mt-2 text-gray-600">
-                            {b.status === "rejected" ? "Rejected" : "Confirmed"}
-                          </span>
-                        </div>
 
-                        {/* Step 3 - Completed */}
-                        <div className="relative z-10 flex flex-col items-center">
-                          <div
-                            className="w-4 h-4 rounded-full border-4 border-white shadow-md transition-all duration-500"
-                            style={{
-                              backgroundColor:
-                                b.status === "completed"
-                                  ? brand
-                                  : "#e5e7eb",
-                            }}
-                          />
-                          <span className="text-xs font-medium mt-2 text-gray-600">
-                            Completed
-                          </span>
+                          {/* Step 1 - Requested */}
+                          <div className="relative z-10 flex flex-col items-center">
+                            <div
+                              className="w-4 h-4 rounded-full border-4 border-white shadow-md"
+                              style={{ backgroundColor: brand }}
+                            />
+                            <span className="text-xs font-medium mt-2 text-gray-600">
+                              Requested
+                            </span>
+                          </div>
+
+                          {/* Step 2 - Confirmed */}
+                          <div className="relative z-10 flex flex-col items-center">
+                            <div
+                              className="w-4 h-4 rounded-full border-4 border-white shadow-md transition-all duration-500"
+                              style={{
+                                backgroundColor:
+                                  b.status === "pending"
+                                    ? "#e5e7eb"
+                                    : b.status === "rejected"
+                                    ? "#ef4444"
+                                    : brand,
+                              }}
+                            />
+                            <span className="text-xs font-medium mt-2 text-gray-600">
+                              {b.status === "rejected" ? "Rejected" : "Confirmed"}
+                            </span>
+                          </div>
+
+                          {/* Step 3 - Completed */}
+                          <div className="relative z-10 flex flex-col items-center">
+                            <div
+                              className="w-4 h-4 rounded-full border-4 border-white shadow-md transition-all duration-500"
+                              style={{
+                                backgroundColor:
+                                  b.status === "completed"
+                                    ? brand
+                                    : "#e5e7eb",
+                              }}
+                            />
+                            <span className="text-xs font-medium mt-2 text-gray-600">
+                              Completed
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* PET INFO */}
-                    {b.pet && (
-                      <div className="mb-4 p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-lg bg-white">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
-                            </svg>
+                      {/* PET INFO */}
+                      {b.pet && (
+                        <div className="mb-4 p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-white">
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">
+                                {b.pet.name} <span className="text-sm font-normal text-gray-600">({b.pet.type}, {b.pet.age} yrs)</span>
+                              </p>
+                              {b.pet.notes && (
+                                <p className="text-sm text-gray-600 mt-1">
+                                  📝 {b.pet.notes}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {b.pet.name} <span className="text-sm font-normal text-gray-600">({b.pet.type}, {b.pet.age} yrs)</span>
+                        </div>
+                      )}
+
+                      {/* BOARDING DETAILS */}
+                      {b.boarding && (
+                        <div className="mb-4 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
+                          <p className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Boarding Duration
+                          </p>
+                          <div className="space-y-2 text-sm">
+                            <p className="text-gray-700">
+                              <span className="font-medium">Dates:</span> {b.boarding.startDate} → {b.boarding.endDate}
                             </p>
-                            {b.pet.notes && (
-                              <p className="text-sm text-gray-600 mt-1">
-                                📝 {b.pet.notes}
+                            {b.boarding.vetNumber && (
+                              <p className="text-gray-700">
+                                <span className="font-medium">Vet:</span> {b.boarding.vetNumber}
+                              </p>
+                            )}
+                            {b.boarding.medicine && (
+                              <p className="text-gray-700">
+                                <span className="font-medium">Medicine:</span> {b.boarding.medicine}
+                              </p>
+                            )}
+                            {b.boarding.emergencyNotes && (
+                              <p className="text-amber-700 bg-amber-50 p-2 rounded-lg mt-2">
+                                ⚠️ {b.boarding.emergencyNotes}
                               </p>
                             )}
                           </div>
                         </div>
-                      </div>
-                    )}
-
-                    {/* BOARDING DETAILS */}
-                    {b.boarding && (
-                      <div className="mb-4 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-100">
-                        <p className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                          </svg>
-                          Boarding Duration
-                        </p>
-                        <div className="space-y-2 text-sm">
-                          <p className="text-gray-700">
-                            <span className="font-medium">Dates:</span> {b.boarding.startDate} → {b.boarding.endDate}
-                          </p>
-                          {b.boarding.vetNumber && (
-                            <p className="text-gray-700">
-                              <span className="font-medium">Vet:</span> {b.boarding.vetNumber}
-                            </p>
-                          )}
-                          {b.boarding.medicine && (
-                            <p className="text-gray-700">
-                              <span className="font-medium">Medicine:</span> {b.boarding.medicine}
-                            </p>
-                          )}
-                          {b.boarding.emergencyNotes && (
-                            <p className="text-amber-700 bg-amber-50 p-2 rounded-lg mt-2">
-                              ⚠️ {b.boarding.emergencyNotes}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* ACTIONS */}
-                    <div className="flex flex-wrap gap-3">
-                      {b.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(b._id, "confirmed")}
-                            className="flex-1 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
-                            style={{ backgroundColor: brand }}
-                          >
-                            ✓ Accept Booking
-                          </button>
-
-                          <button
-                            onClick={() => updateStatus(b._id, "rejected")}
-                            className="flex-1 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
-                          >
-                            ✕ Reject
-                          </button>
-                        </>
                       )}
 
-                      {/* START/END WALK BUTTONS */}
-                      {b.service === "Walk" &&
-                        b.status === "confirmed" &&
-                        b.payment?.paid && (
+                      {/* ACTIONS */}
+                      <div className="flex flex-wrap gap-3">
+                        {b.status === "pending" && (
                           <>
                             <button
-                              onClick={() => startWalk(b._id)}
-                              disabled={activeWalkId === b._id || activeWalkId !== null}
-                              className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
-                                activeWalkId
-                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                  : "bg-green-600 text-white hover:bg-green-700 hover:scale-105 hover:shadow-lg"
-                              }`}
+                              onClick={() => updateStatus(b._id, "confirmed")}
+                              className="flex-1 px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                              style={{ backgroundColor: brand }}
                             >
-                              {activeWalkId === b._id ? "🚶 Walking..." : "🚶 Start Walk"}
+                              ✓ Accept Booking
                             </button>
+
                             <button
-                              onClick={() => endWalk(b._id)}
-                              disabled={activeWalkId !== b._id}
-                              className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
-                                activeWalkId === b._id
-                                  ? "bg-red-600 text-white hover:bg-red-700 hover:scale-105 hover:shadow-lg"
-                                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                              }`}
+                              onClick={() => updateStatus(b._id, "rejected")}
+                              className="flex-1 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
                             >
-                              🛑 End Walk
+                              ✕ Reject
                             </button>
                           </>
                         )}
+
+                        {/* START/END WALK BUTTONS */}
+                        {b.service === "Walk" &&
+                          b.status === "confirmed" &&
+                          b.payment?.paid && (
+                            <>
+                              <button
+                                onClick={() => startWalk(b._id)}
+                                disabled={activeWalkId === b._id || activeWalkId !== null}
+                                className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+                                  activeWalkId
+                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                    : "bg-green-600 text-white hover:bg-green-700 hover:scale-105 hover:shadow-lg"
+                                }`}
+                              >
+                                {activeWalkId === b._id ? "🚶 Walking..." : "🚶 Start Walk"}
+                              </button>
+                              <button
+                                onClick={() => endWalk(b._id)}
+                                disabled={activeWalkId !== b._id}
+                                className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md ${
+                                  activeWalkId === b._id
+                                    ? "bg-red-600 text-white hover:bg-red-700 hover:scale-105 hover:shadow-lg"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              >
+                                🛑 End Walk
+                              </button>
+                            </>
+                          )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

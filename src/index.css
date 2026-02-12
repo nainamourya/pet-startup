@@ -1,6 +1,23 @@
  @import "tailwindcss";
 
- 
+ :root {
+     --color-blue-primary: #0047FF;
+     --color-blue-secondary: #0098D7;
+     --color-purple-primary: #8B5CF6;
+     --color-pink-primary: #EC4899;
+     --color-green-primary: #10B981;
+     --color-yellow-primary: #F59E0B;
+
+     --gradient-blue: linear-gradient(135deg, #0047FF 0%, #0098D7 100%);
+     --gradient-purple: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+     --gradient-green: linear-gradient(135deg, #10B981 0%, #059669 100%);
+     --gradient-warm: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+
+     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+     --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+     --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25); }
      
          .input {
              @apply w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500;     }
@@ -39,3 +56,469 @@
                          .animate-float {
                              animation: float 12s ease-in-out infinite;             }
      
+
+                                                         /* Loading state for submit button */
+                                                         .submit-button.loading {
+                                                             opacity: 0.7;
+                                                             cursor: not-allowed;
+                                                             position: relative;
+                                                         }
+                            
+                                                         .submit-button.loading::after {
+                                                             content: "";
+                                                             position: absolute;
+                                                             width: 16px;
+                                                             height: 16px;
+                                                             top: 50%;
+                                                             left: 50%;
+                                                             margin-left: -8px;
+                                                             margin-top: -8px;
+                                                             border: 2px solid #ffffff;
+                                                             border-top-color: transparent;
+                                                             border-radius: 50%;
+                                                             animation: spin 0.6s linear infinite;
+                                                         }
+                            
+                                                         @keyframes spin {
+                                                             0% {
+                                                                 transform: rotate(360deg);
+                                                             }
+                                                         }
+                                                         /* Smooth page transitions */
+                                                         .page-container {
+                                                           animation: fadeInUp 0.6s ease-out;
+                                                         }
+                                                         
+                                                         @keyframes fadeInUp {
+                                                           from {
+                                                             opacity: 0;
+                                                             transform: translateY(30px);
+                                                           }
+                                                           to {
+                                                             opacity: 1;
+                                                             transform: translateY(0);
+                                                           }
+                                                         }
+                                                         
+                                                         /* Floating animation for decorative elements */
+                                                         @keyframes float {
+                                                           0%, 100% {
+                                                             transform: translateY(0) rotate(0deg);
+                                                           }
+                                                           50% {
+                                                             transform: translateY(-20px) rotate(10deg);
+                                                           }
+                                                         }
+                                                         
+                                                         .floating-element {
+                                                           animation: float 6s ease-in-out infinite;
+                                                         }
+                                                         
+                                                         /* Gradient text effect */
+                                                         .gradient-text {
+                                                           background: linear-gradient(135deg, #0047FF 0%, #8B5CF6 50%, #EC4899 100%);
+                                                           -webkit-background-clip: text;
+                                                           -webkit-text-fill-color: transparent;
+                                                           background-clip: text;
+                                                         }
+                                                         
+                                                         /* Glass morphism effect */
+                                                         .glass-card {
+                                                           background: rgba(255, 255, 255, 0.7);
+                                                           backdrop-filter: blur(10px);
+                                                           -webkit-backdrop-filter: blur(10px);
+                                                           border: 1px solid rgba(255, 255, 255, 0.3);
+                                                         }
+                                                         
+                                                         /* Stats card hover effect */
+                                                         .stats-card {
+                                                           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                                         }
+                                                         
+                                                         .stats-card:hover {
+                                                           transform: translateY(-4px);
+                                                           box-shadow: var(--shadow-xl);
+                                                         }
+                                                         
+                                                         /* Booking card animations */
+                                                         .booking-card {
+                                                           transition: all 0.3s ease;
+                                                           position: relative;
+                                                           overflow: hidden;
+                                                         }
+                                                         
+                                                         .booking-card::before {
+                                                           content: '';
+                                                           position: absolute;
+                                                           top: 0;
+                                                           left: -100%;
+                                                           width: 100%;
+                                                           height: 100%;
+                                                           background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                                                           transition: left 0.5s;
+                                                         }
+                                                         
+                                                         .booking-card:hover::before {
+                                                           left: 100%;
+                                                         }
+                                                         
+                                                         .booking-card:hover {
+                                                           transform: translateY(-4px);
+                                                           box-shadow: var(--shadow-2xl);
+                                                         }
+                                                         
+                                                         /* Button animations */
+                                                         .btn-primary {
+                                                           position: relative;
+                                                           overflow: hidden;
+                                                           transition: all 0.3s ease;
+                                                         }
+                                                         
+                                                         .btn-primary::before {
+                                                           content: '';
+                                                           position: absolute;
+                                                           top: 50%;
+                                                           left: 50%;
+                                                           width: 0;
+                                                           height: 0;
+                                                           border-radius: 50%;
+                                                           background: rgba(255, 255, 255, 0.2);
+                                                           transform: translate(-50%, -50%);
+                                                           transition: width 0.6s, height 0.6s;
+                                                         }
+                                                         
+                                                         .btn-primary:hover::before {
+                                                           width: 300px;
+                                                           height: 300px;
+                                                         }
+                                                         
+                                                         .btn-primary:active {
+                                                           transform: scale(0.98);
+                                                         }
+                                                         
+                                                         /* Filter button styles */
+                                                         .filter-btn {
+                                                           position: relative;
+                                                           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                                         }
+                                                         
+                                                         .filter-btn.active {
+                                                           box-shadow: 0 8px 20px rgba(0, 71, 255, 0.3);
+                                                         }
+                                                         
+                                                         .filter-btn:hover {
+                                                           transform: translateY(-2px);
+                                                         }
+                                                         
+                                                         /* Payment section */
+                                                         .payment-section {
+                                                           background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+                                                           border-left: 4px solid #10B981;
+                                                           border-radius: 12px;
+                                                           padding: 1rem;
+                                                           margin-top: 1rem;
+                                                         }
+                                                         
+                                                         .amount-display {
+                                                           font-size: 2rem;
+                                                           font-weight: 800;
+                                                           background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                                                           -webkit-background-clip: text;
+                                                           -webkit-text-fill-color: transparent;
+                                                           background-clip: text;
+                                                         }
+                                                         
+                                                         /* Status badges */
+                                                         .status-badge {
+                                                           display: inline-flex;
+                                                           align-items: center;
+                                                           gap: 0.5rem;
+                                                           padding: 0.5rem 1rem;
+                                                           border-radius: 9999px;
+                                                           font-weight: 600;
+                                                           font-size: 0.875rem;
+                                                           transition: all 0.3s ease;
+                                                         }
+                                                         
+                                                         .status-badge:hover {
+                                                           transform: scale(1.05);
+                                                         }
+                                                         
+                                                         .status-badge.pending {
+                                                           background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+                                                           color: #92400E;
+                                                           box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+                                                         }
+                                                         
+                                                         .status-badge.confirmed {
+                                                           background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                                                           color: #065F46;
+                                                           box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+                                                         }
+                                                         
+                                                         .status-badge.completed {
+                                                           background: linear-gradient(135deg, #E9D5FF 0%, #DDD6FE 100%);
+                                                           color: #5B21B6;
+                                                           box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+                                                         }
+                                                         
+                                                         .status-badge.rejected {
+                                                           background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+                                                           color: #991B1B;
+                                                           box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+                                                         }
+                                                         
+                                                         /* Pet details section */
+                                                         .pet-details-card {
+                                                           background: rgba(255, 255, 255, 0.6);
+                                                           backdrop-filter: blur(10px);
+                                                           border-radius: 1rem;
+                                                           padding: 1rem;
+                                                           border: 1px solid rgba(255, 255, 255, 0.4);
+                                                           transition: all 0.3s ease;
+                                                         }
+                                                         
+                                                         .pet-details-card:hover {
+                                                           background: rgba(255, 255, 255, 0.8);
+                                                           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                                                         }
+                                                         
+                                                         /* Boarding details section */
+                                                         .boarding-details-card {
+                                                           background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+                                                           border-left: 4px solid #8B5CF6;
+                                                           border-radius: 1rem;
+                                                           padding: 1rem;
+                                                         }
+                                                         
+                                                         /* Action buttons container */
+                                                         .action-buttons {
+                                                           display: flex;
+                                                           flex-wrap: wrap;
+                                                           gap: 0.75rem;
+                                                           margin-top: 1rem;
+                                                         }
+                                                         
+                                                         .action-btn {
+                                                           flex: 1;
+                                                           min-width: 200px;
+                                                           padding: 0.75rem 1.5rem;
+                                                           border-radius: 0.75rem;
+                                                           font-weight: 600;
+                                                           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                                           display: flex;
+                                                           align-items: center;
+                                                           justify-content: center;
+                                                           gap: 0.5rem;
+                                                           box-shadow: var(--shadow-lg);
+                                                         }
+                                                         
+                                                         .action-btn:hover {
+                                                           transform: translateY(-2px);
+                                                           box-shadow: var(--shadow-xl);
+                                                         }
+                                                         
+                                                         .action-btn:active {
+                                                           transform: translateY(0);
+                                                         }
+                                                         
+                                                         .action-btn.track-walk {
+                                                           background: linear-gradient(135deg, #0047FF 0%, #0098D7 100%);
+                                                           color: white;
+                                                         }
+                                                         
+                                                         .action-btn.pay-now {
+                                                           background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+                                                           color: white;
+                                                         }
+                                                         
+                                                         .action-btn.review {
+                                                           background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+                                                           color: white;
+                                                         }
+                                                         
+                                                         /* Loading spinner */
+                                                         @keyframes spin {
+                                                           to {
+                                                             transform: rotate(360deg);
+                                                           }
+                                                         }
+                                                         
+                                                         .spinner {
+                                                           animation: spin 1s linear infinite;
+                                                         }
+                                                         
+                                                         /* Empty state */
+                                                         .empty-state {
+                                                           text-align: center;
+                                                           padding: 4rem 2rem;
+                                                         }
+                                                         
+                                                         .empty-state-icon {
+                                                           display: inline-flex;
+                                                           padding: 2rem;
+                                                           background: linear-gradient(135deg, #DBEAFE 0%, #E9D5FF 100%);
+                                                           border-radius: 50%;
+                                                           margin-bottom: 1.5rem;
+                                                         }
+                                                         
+                                                         .empty-state-icon:hover {
+                                                           animation: float 2s ease-in-out infinite;
+                                                         }
+                                                         
+                                                         /* Alert/Notification */
+                                                         .alert {
+                                                           position: relative;
+                                                           animation: slideInDown 0.4s ease-out;
+                                                           border-radius: 1rem;
+                                                           padding: 1rem 1.5rem;
+                                                         }
+                                                         
+                                                         @keyframes slideInDown {
+                                                           from {
+                                                             transform: translateY(-20px);
+                                                             opacity: 0;
+                                                           }
+                                                           to {
+                                                             transform: translateY(0);
+                                                             opacity: 1;
+                                                           }
+                                                         }
+                                                         
+                                                         .alert.success {
+                                                           background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                                                           border: 2px solid #10B981;
+                                                           color: #065F46;
+                                                         }
+                                                         
+                                                         /* Responsive design */
+                                                         @media (max-width: 768px) {
+                                                           .stats-grid {
+                                                             grid-template-columns: repeat(2, 1fr);
+                                                           }
+                                                           
+                                                           .action-buttons {
+                                                             flex-direction: column;
+                                                           }
+                                                           
+                                                           .action-btn {
+                                                             min-width: 100%;
+                                                           }
+                                                           
+                                                           .gradient-text {
+                                                             font-size: 2rem;
+                                                           }
+                                                         }
+                                                         
+                                                         @media (max-width: 640px) {
+                                                           .booking-card {
+                                                             padding: 1rem;
+                                                           }
+                                                           
+                                                           .stats-card {
+                                                             padding: 1rem;
+                                                           }
+                                                           
+                                                           .filter-btn {
+                                                             font-size: 0.875rem;
+                                                             padding: 0.5rem 1rem;
+                                                           }
+                                                         }
+                                                         
+                                                         /* Accessibility improvements */
+                                                         .focus-visible:focus {
+                                                           outline: 2px solid var(--color-blue-primary);
+                                                           outline-offset: 2px;
+                                                         }
+                                                         
+                                                         /* Dark mode support (optional) */
+                                                         @media (prefers-color-scheme: dark) {
+                                                           :root {
+                                                             --shadow-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+                                                             --shadow-md: 0 4px 6px rgba(255, 255, 255, 0.07);
+                                                             --shadow-lg: 0 10px 15px rgba(255, 255, 255, 0.1);
+                                                           }
+                                                         }
+                                                         
+                                                         /* Smooth scroll */
+                                                         html {
+                                                           scroll-behavior: smooth;
+                                                         }
+                                                         
+                                                         /* Custom scrollbar */
+                                                         ::-webkit-scrollbar {
+                                                           width: 10px;
+                                                         }
+                                                         
+                                                         ::-webkit-scrollbar-track {
+                                                           background: #f1f1f1;
+                                                           border-radius: 10px;
+                                                         }
+                                                         
+                                                         ::-webkit-scrollbar-thumb {
+                                                           background: linear-gradient(135deg, #0047FF 0%, #8B5CF6 100%);
+                                                           border-radius: 10px;
+                                                         }
+                                                         
+                                                         ::-webkit-scrollbar-thumb:hover {
+                                                           background: linear-gradient(135deg, #0047FF 0%, #EC4899 100%);
+                                                         }
+                                                         
+                                                         /* Print styles */
+                                                         @media print {
+                                                           .action-buttons,
+                                                           .filter-btn,
+                                                           .floating-element {
+                                                             display: none;
+                                                           }
+                                                           
+                                                           .booking-card {
+                                                             break-inside: avoid;
+                                                             box-shadow: none;
+                                                             border: 1px solid #000;
+                                                           }
+                                                         }
+                                                         
+                                                         /* Performance optimization - GPU acceleration */
+                                                         .booking-card,
+                                                         .action-btn,
+                                                         .stats-card {
+                                                           will-change: transform;
+                                                           transform: translateZ(0);
+                                                           backface-visibility: hidden;
+                                                         }
+                                                         
+                                                         /* Pulse animation for important elements */
+                                                         @keyframes pulse {
+                                                           0%, 100% {
+                                                             opacity: 1;
+                                                           }
+                                                           50% {
+                                                             opacity: 0.7;
+                                                           }
+                                                         }
+                                                         
+                                                         .pulse-animation {
+                                                           animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                                                         }
+                                                         
+                                                         /* Shimmer loading effect */
+                                                         @keyframes shimmer {
+                                                           0% {
+                                                             background-position: -1000px 0;
+                                                           }
+                                                           100% {
+                                                             background-position: 1000px 0;
+                                                           }
+                                                         }
+                                                         
+                                                         .shimmer {
+                                                           background: linear-gradient(
+                                                             90deg,
+                                                             #f0f0f0 0px,
+                                                             #e0e0e0 40px,
+                                                             #f0f0f0 80px
+                                                           );
+                                                           background-size: 1000px 100%;
+                                                           animation: shimmer 2s infinite;
+                                                         }

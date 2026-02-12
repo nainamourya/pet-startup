@@ -21,7 +21,8 @@ import AdminLayout from "./layouts/AdminLayout.jsx";
 import AdminUsers from "./admin/pages/AdminUsers.jsx";
 import AdminReviews from "./admin/pages/AdminReviews.jsx";
 import AdminSitters from "./admin/pages/AdminSitters.jsx";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   return (
@@ -86,7 +87,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/review/:bookingId" element={<LeaveReview />} />
-
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route
             path="/become"
             element={
