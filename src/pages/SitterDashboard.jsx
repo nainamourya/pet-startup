@@ -4,7 +4,7 @@ import { socket } from "../socket";
 import toast from "react-hot-toast";
 import API_BASE_URL from "../config/api";
 import BankDetailsSection from "./Bankdetailssection.jsx";
-import WithdrawalSection from "./WithdrawalSection.jsx";
+import WithdrawalSection from "./Withdrawalsection.jsx";
 
 export default function SitterDashboard() {
   const [bookings, setBookings] = useState([]);
