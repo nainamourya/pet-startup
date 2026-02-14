@@ -88,9 +88,20 @@ const sitterSchema = new mongoose.Schema(
         url: String,
         uploadedAt: { type: Date, default: Date.now }
       }]
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+      },
     }
   },
   { timestamps: true }
 );
-
+sitterSchema.index({ location: "2dsphere" });
 export default mongoose.model("Sitter", sitterSchema);

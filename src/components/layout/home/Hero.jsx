@@ -81,21 +81,21 @@ export default function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Background images array
-  const backgroundImages = [
-    "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=1920&q=80", // Happy dog
-    "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1920&q=80", // Cat playing
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1920&q=80", // Dog and owner
-    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1920&q=80", // Golden retriever
-  ];
+  // const backgroundImages = [
+  //   "https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=1920&q=80", // Happy dog
+  //   "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1920&q=80", // Cat playing
+  //   "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=1920&q=80", // Dog and owner
+  //   "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1920&q=80", // Golden retriever
+  // ];
 
   // Rotate background images
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-    }, 4000); // Change every 4 seconds
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+  //   }, 4000); 
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   // Typewriter effect
   useEffect(() => {
@@ -148,7 +148,7 @@ export default function Hero() {
     <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden">
       
       {/* Rotating Background Images with Fade Effect */}
-      <div className="absolute inset-0">
+      {/* <div className="absolute inset-0">
         {backgroundImages.map((image, index) => (
           <motion.div
             key={index}
@@ -162,7 +162,7 @@ export default function Hero() {
             transition={{ duration: 1.5, ease: "easeInOut" }}
           />
         ))}
-      </div>
+      </div> */}
 
       {/* Soft Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/95 via-blue-50/90 to-indigo-50/85 backdrop-blur-sm" />
