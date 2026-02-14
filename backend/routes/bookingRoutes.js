@@ -74,7 +74,7 @@ router.get("/", async (req, res) => {
 /* ============================
    CREATE BOOKING
 ============================ */
-router.post("/", async (req, res) => {
+router.post("/", async (req, res) => {  
   try {
     const { sitterId, ownerId, service, date, walk, boarding, pet } = req.body;
 

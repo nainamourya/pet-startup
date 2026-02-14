@@ -141,6 +141,7 @@ useEffect(() => {
 
     const lastSeen = localStorage.getItem("lastSeenBookingsAt");
     const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
+    console.log(bookingsData);
     const fresh = bookingsData.filter(
       (b) => b.status === "pending" && new Date(b.createdAt) > lastSeenTime
     );
