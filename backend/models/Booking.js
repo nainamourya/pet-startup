@@ -41,7 +41,7 @@ const bookingSchema = new mongoose.Schema(
       age: { type: String },
       notes: { type: String },
     },
-
+    breed: { type: String },
 
     status: {
       type: String,

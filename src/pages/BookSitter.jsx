@@ -1,7 +1,29 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import API_BASE_URL from "../config/api";
+const dogBreeds = [
+  "Labrador Retriever",
+  "Golden Retriever",
+  "German Shepherd",
+  "Pug",
+  "Beagle",
+  "Shih Tzu",
+  "Rottweiler",
+  "Doberman",
+  "Indie",
+  "Other"
+];
 
+const catBreeds = [
+  "Persian",
+  "Siamese",
+  "Maine Coon",
+  "British Shorthair",
+  "Ragdoll",
+  "Bengal",
+  "Indian Billi",
+  "Other"
+];
 // Professional SVG Icons
 const Icons = {
   Calendar: ({ className = "w-6 h-6" }) => (
@@ -86,6 +108,8 @@ export default function BookSitter() {
   const [medicine, setMedicine] = useState("");
   const [vetNumber, setVetNumber] = useState("");
   const [emergencyNotes, setEmergencyNotes] = useState("");
+  const [petBreed, setPetBreed] = useState("");
+const [customBreed, setCustomBreed] = useState("");
 
   // Other services
   const [date, setDate] = useState("");
@@ -168,6 +192,7 @@ export default function BookSitter() {
         pet: {
           name: petName,
           type: petType,
+          breed: petBreed === "Other" ? customBreed : petBreed,
           age: petAge,
           notes: petNotes,
         },
@@ -323,7 +348,42 @@ export default function BookSitter() {
                   />
                 </div>
               </div>
+              <div>
+  <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+    Breed *
+  </label>
 
+  <select
+    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 bg-white"
+    value={petBreed}
+    onChange={(e) => {
+      setPetBreed(e.target.value);
+      setCustomBreed("");
+      setError("");
+    }}
+  >
+    <option value="">Select breed</option>
+
+    {(petType === "Dog" ? dogBreeds : catBreeds).map((breed) => (
+      <option key={breed} value={breed}>
+        {breed}
+      </option>
+    ))}
+  </select>
+
+  {petBreed === "Other" && (
+    <input
+      type="text"
+      placeholder="Enter breed"
+      className="mt-3 w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900"
+      value={customBreed}
+      onChange={(e) => {
+        setCustomBreed(e.target.value);
+        setError("");
+      }}
+    />
+  )}
+</div>
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
                   Special Notes (Optional)

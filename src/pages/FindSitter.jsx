@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, Calendar, PawPrint, Star } from "lucide-react";
+import { 
+  Search, MapPin, Calendar, PawPrint, Star, 
+  Loader2, Navigation, Target
+} from "lucide-react";
 import API_BASE_URL from "../config/api";
 
 // Additional Professional SVG Icons
@@ -14,11 +17,6 @@ const Icons = {
   Heart: ({ className = "w-5 h-5" }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
       <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-    </svg>
-  ),
-  Sparkles: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg>
   ),
   Users: ({ className = "w-5 h-5" }) => (
@@ -52,45 +50,103 @@ export default function FindSitter() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Form state - NEW LOCATION-BASED
   const [petType, setPetType] = useState("Dog");
   const [service, setService] = useState("Walk");
-  const [city, setCity] = useState("");
-  const [date, setDate] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
+  const [coordinates, setCoordinates] = useState(null);
+  const [radius, setRadius] = useState(5); // Default 5km
+  
+  // UI state
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [ratings, setRatings] = useState({});
 
-  // ---------- EXISTING LOGIC (UNCHANGED) ----------
-  const fetchSitters = async (cityParam, dateParam) => {
-    const res = await fetch(
-      `${API_BASE_URL}/api/sitters?city=${encodeURIComponent(
-        cityParam.trim()
-      )}`
-    );
+  // Restore state from navigation (OLD FEATURE - KEEP THIS)
+  useEffect(() => {
+    if (results.length > 0) return;
 
-    const allSitters = await res.json();
+    if (location.state?.results) {
+      setResults(location.state.results);
+      setSearchLocation(location.state.city || "");
+      return;
+    }
+  }, [location.state, results.length]);
 
-    const available = allSitters.filter((s) => {
-      if (!Array.isArray(s.availableDates) || s.availableDates.length === 0) {
-        return true;
+  // NEW: Get user's current location
+  const handleUseCurrentLocation = async () => {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setLocationLoading(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/api/location/reverse-geocode?lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
+          
+          setCoordinates({ lat: latitude, lng: longitude });
+          setSearchLocation(data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setLocationLoading(false);
+        } catch (err) {
+          console.error("Reverse geocode error:", err);
+          setCoordinates({ lat: latitude, lng: longitude });
+          setSearchLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setLocationLoading(false);
+        }
+      },
+      (error) => {
+        setLocationLoading(false);
+        setError("Unable to get your location. Please enter manually.");
+        console.error("Geolocation error:", error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
       }
-      return s.availableDates.includes(dateParam);
-    });
+    );
+  };
 
+  // NEW: Geocode address to coordinates
+  const geocodeAddress = async (address) => {
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/location/geocode?address=${encodeURIComponent(address)}`
+      );
+      const data = await res.json();
+      
+      if (data.lat && data.lon) {
+        return { lat: parseFloat(data.lat), lng: parseFloat(data.lon) };
+      }
+      return null;
+    } catch (err) {
+      console.error("Geocoding error:", err);
+      return null;
+    }
+  };
+
+  // OLD: Fetch ratings (KEEP THIS - IT'S IMPORTANT)
+  const fetchRatings = async (sittersList) => {
     const map = {};
     await Promise.all(
-      available.map(async (s) => {
+      sittersList.map(async (s) => {
         try {
-          const r = await fetch(
-            `${API_BASE_URL}/api/reviews?sitterId=${s._id}`
-          );
+          const r = await fetch(`${API_BASE_URL}/api/reviews?sitterId=${s._id}`);
           const reviews = await r.json();
 
           if (Array.isArray(reviews) && reviews.length) {
-            const avg =
-              reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
-
+            const avg = reviews.reduce((a, c) => a + c.rating, 0) / reviews.length;
             map[s._id] = { avg: avg.toFixed(1), count: reviews.length };
           } else {
             map[s._id] = { avg: null, count: 0 };
@@ -100,43 +156,64 @@ export default function FindSitter() {
         }
       })
     );
-
-    return { available, ratingsMap: map };
+    return map;
   };
 
-  useEffect(() => {
-    if (results.length > 0) return;
-
-    if (location.state?.results) {
-      setResults(location.state.results);
-      setCity(location.state.city || "");
-      setDate(location.state.date || "");
-      return;
-    }
-  }, [location.state, results.length]);
-
+  // NEW SEARCH LOGIC (Location-based, no date filtering)
   const handleSearch = async () => {
-    if (!date) {
-      setError("Please select a date for your booking.");
-      return;
-    }
-
     setError("");
     setLoading(true);
     setRatings({});
 
     try {
-      const { available, ratingsMap } = await fetchSitters(city, date);
-      setResults(available);
-      setRatings(ratingsMap);
+      let searchCoords = coordinates;
 
+      // If no coordinates but has address, geocode it
+      if (!searchCoords && searchLocation) {
+        searchCoords = await geocodeAddress(searchLocation);
+        if (searchCoords) {
+          setCoordinates(searchCoords);
+        } else {
+          setError("Could not find location. Please try a different address.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!searchCoords) {
+        setError("Please enter a location or use your current location");
+        setLoading(false);
+        return;
+      }
+
+      // Search sitters by location
+      const radiusInMeters = radius * 1000;
+      const url = `${API_BASE_URL}/api/sitters?lat=${searchCoords.lat}&lng=${searchCoords.lng}&radius=${radiusInMeters}`;
+      
+      console.log("🔍 Searching with:", { lat: searchCoords.lat, lng: searchCoords.lng, radius: radiusInMeters });
+      
+      const res = await fetch(url);
+      const sittersData = await res.json();
+
+      let available = Array.isArray(sittersData) ? sittersData : [];
+
+      console.log(`✅ Found ${available.length} nearby sitters`);
+
+      // OLD FEATURE: Fetch ratings (KEEP THIS)
+      const ratingsMap = await fetchRatings(available);
+      setRatings(ratingsMap);
+      setResults(available);
+
+      // OLD FEATURE: Save to sessionStorage (KEEP THIS)
       sessionStorage.setItem(
         "findSitterState",
-        JSON.stringify({ city, date, results: available })
+        JSON.stringify({ city: searchLocation, results: available })
       );
-    } catch {
-      setError("Failed to fetch sitters. Please try again.");
-    } finally {
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Search error:", err);
+      setError("Failed to search for sitters. Please try again.");
       setLoading(false);
     }
   };
@@ -194,7 +271,7 @@ export default function FindSitter() {
             Find the Perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sitter</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-            Trusted sitters, calm care, zero stress. Book verified pet care professionals in your area.
+            Trusted sitters, calm care, zero stress. Book verified pet care professionals near you.
           </p>
 
           {/* Quick Stats */}
@@ -223,7 +300,7 @@ export default function FindSitter() {
           </div>
         </motion.div>
 
-        {/* Search Card */}
+        {/* Search Card - NEW LOCATION-BASED UI */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -266,24 +343,92 @@ export default function FindSitter() {
               </select>
             </Field>
 
-            <Field icon={<MapPin size={18} className="text-red-600" />} label="City">
-              <input 
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                placeholder="e.g., Mumbai, Delhi, Bangalore" 
-                value={city} 
-                onChange={(e) => setCity(e.target.value)} 
-              />
-            </Field>
+            {/* NEW: Location Input with Geolocation */}
+            <div className="sm:col-span-2">
+              <label className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                <MapPin size={18} className="text-red-600" /> Your Location
+              </label>
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <input 
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                    placeholder="e.g., Bandra West, Mumbai" 
+                    value={searchLocation} 
+                    onChange={(e) => {
+                      setSearchLocation(e.target.value);
+                      // Clear locked coordinates when user manually types
+                      if (coordinates) {
+                        setCoordinates(null);
+                      }
+                    }} 
+                  />
+                  {coordinates && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Target className="w-5 h-5 text-green-500" />
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={locationLoading}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg flex items-center gap-2 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {locationLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Navigation className="w-5 h-5" />
+                  )}
+                  <span className="hidden sm:inline">Use My Location</span>
+                </button>
+              </div>
+              {coordinates && (
+                <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  Location locked: {coordinates.lat.toFixed(4)}, {coordinates.lng.toFixed(4)}
+                  <button
+                    onClick={() => setCoordinates(null)}
+                    className="ml-2 text-red-500 hover:text-red-700 underline text-xs"
+                  >
+                    Clear
+                  </button>
+                </p>
+              )}
+            </div>
 
-            <Field icon={<Calendar size={18} className="text-blue-600" />} label="Date">
-              <input
-                type="date"
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </Field>
+            {/* NEW: Radius Selector */}
+            <div className="sm:col-span-2">
+              <label className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2 uppercase tracking-wide">
+                Search Radius: {radius}km
+              </label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  step="1"
+                  value={radius}
+                  onChange={(e) => setRadius(parseFloat(e.target.value))}
+                  className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                />
+                <div className="flex gap-2">
+                  {[2, 5, 10].map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRadius(r)}
+                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all ${
+                        radius === r
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {r}km
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
 
           {error && (
@@ -307,20 +452,20 @@ export default function FindSitter() {
           >
             {loading ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <Loader2 className="w-5 h-5 animate-spin" />
                 <span>Searching...</span>
               </>
             ) : (
               <>
                 <Search className="w-5 h-5" />
-                <span>Find Sitters</span>
+                <span>Find Sitters Near Me</span>
                 <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </>
             )}
           </button>
         </motion.div>
 
-        {/* Results Section */}
+        {/* Results Section - OLD DISPLAY LOGIC (KEEP ALL OF THIS) */}
         {results.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -332,7 +477,7 @@ export default function FindSitter() {
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Available Sitters</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  Found {results.length} {results.length === 1 ? 'sitter' : 'sitters'} in {city || 'your area'}
+                  Found {results.length} {results.length === 1 ? 'sitter' : 'sitters'} within {radius}km
                 </p>
               </div>
               <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold">
@@ -354,9 +499,25 @@ export default function FindSitter() {
                     {/* Sitter Info */}
                     <div className="flex-1">
                       <div className="flex items-start gap-4">
-                        {/* Avatar */}
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0 shadow-lg">
-                          {sitter.name.charAt(0).toUpperCase()}
+                        {/* Avatar with Profile Photo - NEW */}
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-blue-100 flex-shrink-0 shadow-lg">
+                          {sitter.photo ? (
+                            <img
+                              src={sitter.photo}
+                              alt={sitter.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Fallback to initials if image fails
+                                e.target.style.display = 'none';
+                                e.target.parentElement.classList.add('bg-gradient-to-br', 'from-blue-600', 'to-indigo-600', 'flex', 'items-center', 'justify-center');
+                                e.target.parentElement.innerHTML = `<span class="text-white font-bold text-xl">${sitter.name.charAt(0).toUpperCase()}</span>`;
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+                              <span className="text-white font-bold text-xl">{sitter.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex-1">
@@ -365,7 +526,7 @@ export default function FindSitter() {
                               className="text-lg sm:text-xl font-bold text-blue-600 cursor-pointer hover:text-blue-700 transition-colors group-hover:underline"
                               onClick={() =>
                                 navigate(`/sitter/${sitter._id}`, {
-                                  state: { city, date, results },
+                                  state: { city: searchLocation, results },
                                 })
                               }
                             >
@@ -432,7 +593,7 @@ export default function FindSitter() {
                       <button
                         onClick={() =>
                           navigate(`/book/${sitter._id}`, {
-                            state: { sitter, date, service },
+                            state: { sitter, service },
                           })
                         }
                         className="px-6 py-3 rounded-xl bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold hover:from-gray-800 hover:to-gray-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg flex items-center gap-2 whitespace-nowrap"
@@ -449,7 +610,7 @@ export default function FindSitter() {
         )}
 
         {/* Empty State */}
-        {!loading && results.length === 0 && date && (
+        {!loading && results.length === 0 && searchLocation && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -460,24 +621,20 @@ export default function FindSitter() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No Sitters Found</h3>
             <p className="text-gray-600 mb-6">
-              We couldn't find any sitters matching your criteria. Try adjusting your search.
+              We couldn't find any sitters matching your criteria. Try expanding your radius.
             </p>
             <button
-              onClick={() => {
-                setCity("");
-                setDate("");
-                setResults([]);
-              }}
+              onClick={() => setRadius(Math.min(radius + 2, 10))}
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all"
             >
               <Search className="w-5 h-5" />
-              New Search
+              Expand to {Math.min(radius + 2, 10)}km
             </button>
           </motion.div>
         )}
 
         {/* How It Works Section */}
-        {results.length === 0 && !date && (
+        {results.length === 0 && !searchLocation && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -491,7 +648,7 @@ export default function FindSitter() {
                   <Search className="w-8 h-8 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">1. Search</h3>
-                <p className="text-sm text-gray-600">Enter your location and preferred date to find available sitters</p>
+                <p className="text-sm text-gray-600">Enter your location to find available sitters nearby</p>
               </div>
               
               <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">

@@ -74,6 +74,17 @@ const Icons = {
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
     </svg>
+  ),
+  Home: ({ className = "w-5 h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  ),
+  MapPin: ({ className = "w-5 h-5" }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
   )
 };
 
@@ -155,10 +166,12 @@ export default function FindSitterProfile() {
         const r = await fetch(`${API_BASE_URL}/api/reviews?sitterId=${id}`);
         const reviewData = await r.json();
 
-        const b = await fetch(
-          `${API_BASE_URL}/api/bookings?sitterId=${id}`
-        );
+        const b = await fetch(`${API_BASE_URL}/api/bookings?sitterId=${id}`);
         const bookingData = await b.json();
+
+        console.log("✅ Sitter data loaded:", sitterData);
+        console.log("📸 Profile photo:", sitterData.photo);
+        console.log("🏠 Home photo:", sitterData.homePhoto);
 
         setSitter(sitterData);
         setReviews(Array.isArray(reviewData) ? reviewData : []);
@@ -218,9 +231,12 @@ export default function FindSitterProfile() {
               <div className="relative">
                 <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-white">
                   <img
-                    src={sitter.photo || "https://via.placeholder.com/150"}
+                    src={sitter.photo || "https://via.placeholder.com/150?text=No+Photo"}
                     alt={sitter.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/150?text=No+Photo";
+                    }}
                   />
                 </div>
                 {sitter.verified && (
@@ -369,6 +385,49 @@ export default function FindSitterProfile() {
               <h2 className="text-xl font-bold text-gray-900">About Me</h2>
             </div>
             <p className="text-gray-700 leading-relaxed">{sitter.bio}</p>
+          </div>
+        )}
+
+        {/* Home/Space Photo Section */}
+        {sitter.homePhoto && (
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <Icons.Home className="w-5 h-5 text-indigo-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Care Space</h2>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Where your pet will be cared for
+            </p>
+            <div className="rounded-xl overflow-hidden border-2 border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+              <img
+                src={sitter.homePhoto}
+                alt="Pet care space"
+                className="w-full h-auto object-cover max-h-96"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Address Section */}
+        {sitter.address && (
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Icons.MapPin className="w-5 h-5 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Location</h2>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <p className="text-gray-700 leading-relaxed flex items-start gap-2">
+                <Icons.Location className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                <span>{sitter.address}</span>
+              </p>
+            </div>
           </div>
         )}
 

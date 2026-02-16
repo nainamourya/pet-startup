@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import API_BASE_URL from "../config/api";
+
 import {
   User,
   MapPin,
@@ -28,9 +29,9 @@ export default function BecomeSitter() {
     bio: "",
     photo: "",
     address: "",
-    aadhaarNumber: "", // ✅ added
-    panNumber: "", // ✅ added
-    homePhoto: "", // ✅ added
+    aadhaarNumber: "",
+    panNumber: "",
+    homePhoto: "",
   });
 
   const [success, setSuccess] = useState(false);
@@ -46,58 +47,138 @@ export default function BecomeSitter() {
     }));
   };
 
+  const uploadPhoto = async (file) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+  
+    const res = await fetch(`${API_BASE_URL}/api/sitters/upload-photo`, {
+      method: "POST",
+      body: formData,
+    });
+  
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Failed to upload photo");
+    }
+
+    const data = await res.json();
+    
+    if (!data.imageUrl) {
+      throw new Error("No image URL returned from server");
+    }
+
+    return data.imageUrl;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
       alert("Please login first.");
       return;
     }
-
-    const res = await fetch(`${API_BASE_URL}/api/sitters`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  
+    try {
+      let profileImageUrl = "";
+      let homeImageUrl = "";
+  
+      // Upload profile photo (optional - continue even if fails)
+      if (photoPreview) {
+        const profileFile = document.getElementById("profile-photo").files[0];
+        if (profileFile) {
+          try {
+            console.log("Uploading profile photo...");
+            profileImageUrl = await uploadPhoto(profileFile);
+            console.log("Profile photo uploaded:", profileImageUrl);
+          } catch (uploadError) {
+            console.error("Profile photo upload failed:", uploadError);
+            alert("Warning: Profile photo upload failed. Continuing without photo.");
+          }
+        }
+      }
+  
+      // Upload home photo (optional - continue even if fails)
+      if (homePhotoPreview) {
+        const homeFile = document.getElementById("home-photo").files[0];
+        if (homeFile) {
+          try {
+            console.log("Uploading home photo...");
+            homeImageUrl = await uploadPhoto(homeFile);
+            console.log("Home photo uploaded:", homeImageUrl);
+          } catch (uploadError) {
+            console.error("Home photo upload failed:", uploadError);
+            alert("Warning: Home photo upload failed. Continuing without photo.");
+          }
+        }
+      }
+  
+      console.log("Creating sitter profile with data:", {
         userId: user.id,
         ...form,
-      }),
-    });
+        photo: profileImageUrl,
+        homePhoto: homeImageUrl,
+      });
 
-    const data = await res.json();
+      const res = await fetch(`${API_BASE_URL}/api/sitters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          ...form,
+          photo: profileImageUrl,
+          homePhoto: homeImageUrl,
+        }),
+      });
+  
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Server error:", errorData);
+        throw new Error(errorData.message || "Failed to create sitter profile");
+      }
 
-    // Update localStorage with sitterProfile
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        ...user,
-        role: "sitter",
-        sitterProfile: String(data.sitter._id),
-      })
-    );
+      const data = await res.json();
+      console.log("Sitter profile created:", data);
 
-    setSuccess(true);
+      if (!data.sitter || !data.sitter._id) {
+        throw new Error("Invalid response from server - no sitter ID returned");
+      }
+  
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...user,
+          role: "sitter",
+          sitterProfile: String(data.sitter._id),
+        })
+      );
+  
+      setSuccess(true);
+    } catch (err) {
+      console.error("Error creating sitter profile:", err);
+      alert(err.message || "Something went wrong. Please try again.");
+    }
   };
 
   if (success) {
     return (
-      <div className="pt-24 px-6 max-w-xl mx-auto text-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-24 px-6 flex items-center justify-center">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-3xl shadow-lg border p-12"
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12 max-w-xl w-full text-center"
         >
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6">
-            <CheckCircle2 size={40} className="text-white" />
+          <div className="mx-auto w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
+            <CheckCircle2 size={48} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Application Submitted! 🎉</h1>
-          <p className="mt-4 text-gray-600">
-            You're now part of PetSitter. You can open your Dashboard.
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Application Submitted! 🎉</h1>
+          <p className="text-lg text-gray-600 mb-8">
+            You're now part of PetSitter. You can open your Dashboard to start managing bookings.
           </p>
           <button
             onClick={() => window.location.href = "/dashboard"}
-            className="mt-8 px-8 py-3 rounded-full bg-gradient-to-r from-[#0047FF] to-[#0098D7] text-white font-medium hover:opacity-95 transition"
+            className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
           >
             Go to Dashboard
           </button>
@@ -122,11 +203,11 @@ export default function BecomeSitter() {
     const reader = new FileReader();
     reader.onloadend = () => {
       if (type === "profile") {
-        setForm((prev) => ({ ...prev, photo: reader.result }));
         setPhotoPreview(reader.result);
+        setForm((prev) => ({ ...prev, photo: reader.result }));
       } else if (type === "home") {
-        setForm((prev) => ({ ...prev, homePhoto: reader.result }));
         setHomePhotoPreview(reader.result);
+        setForm((prev) => ({ ...prev, homePhoto: reader.result }));
       }
     };
     reader.readAsDataURL(file);
@@ -173,11 +254,11 @@ export default function BecomeSitter() {
   };
 
   return (
-    <section className="relative pt-28 pb-24 px-6 bg-[#F8FAFC] overflow-hidden">
+    <section className="relative pt-28 pb-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-indigo-50 overflow-hidden">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-start">
         {/* Ambient icon */}
         <motion.div
-          animate={{ y: [0, -8, 0] }}
+          animate={{ y: [0, -8, 0], rotate: [0, 5, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-24 right-24 opacity-20 hidden md:block"
         >
@@ -188,14 +269,14 @@ export default function BecomeSitter() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-xl mx-auto bg-white rounded-3xl shadow-sm border p-8 sm:p-10"
+          className="max-w-xl mx-auto bg-white rounded-3xl shadow-xl border border-gray-100 p-8 sm:p-10"
         >
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-semibold text-gray-900 flex items-center justify-center gap-2">
-              Become a PetSitter
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              Become a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">PetSitter</span>
             </h1>
-            <p className="mt-3 text-sm text-gray-600">
+            <p className="mt-3 text-gray-600">
               Create a verified profile pet owners can trust.
             </p>
           </div>
@@ -210,7 +291,7 @@ export default function BecomeSitter() {
                 required
                 minLength={2}
                 placeholder="Your full name"
-                className="input"
+                className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
@@ -221,7 +302,7 @@ export default function BecomeSitter() {
               <input
                 required
                 placeholder="City you operate in"
-                className="input"
+                className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                 value={form.city}
                 onChange={(e) => setForm({ ...form, city: e.target.value })}
               />
@@ -234,13 +315,13 @@ export default function BecomeSitter() {
                   required
                   value={form.address}
                   placeholder="Complete address with landmark"
-                  className="input flex-1"
+                  className="input flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                 />
                 <button
                   type="button"
                   onClick={fetchCurrentLocation}
-                  className="px-4 rounded-lg border text-sm hover:bg-gray-100 transition whitespace-nowrap"
+                  className="px-4 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold hover:bg-gray-50 hover:border-blue-500 transition-all whitespace-nowrap"
                 >
                   Use Location
                 </button>
@@ -261,7 +342,7 @@ export default function BecomeSitter() {
                 required
                 type="text"
                 placeholder="1234 5678 9012"
-                className="input"
+                className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                 value={form.aadhaarNumber}
                 onChange={(e) =>
                   setForm({ ...form, aadhaarNumber: formatAadhaar(e.target.value) })
@@ -281,7 +362,7 @@ export default function BecomeSitter() {
                 required
                 type="text"
                 placeholder="ABCDE1234F"
-                className="input uppercase"
+                className="input uppercase w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                 value={form.panNumber}
                 onChange={(e) =>
                   setForm({ ...form, panNumber: formatPAN(e.target.value) })
@@ -301,7 +382,7 @@ export default function BecomeSitter() {
                   e.preventDefault();
                   handlePhotoUpload(e.dataTransfer.files[0], "profile");
                 }}
-                className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition"
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
               >
                 <input
                   type="file"
@@ -316,7 +397,7 @@ export default function BecomeSitter() {
                       <img
                         src={photoPreview}
                         alt="Profile preview"
-                        className="mx-auto h-32 w-32 rounded-full object-cover border-4 border-blue-100"
+                        className="mx-auto h-32 w-32 rounded-full object-cover border-4 border-blue-100 shadow-lg"
                       />
                       <p className="text-xs text-gray-500">Click to change photo</p>
                     </div>
@@ -346,7 +427,7 @@ export default function BecomeSitter() {
                   e.preventDefault();
                   handlePhotoUpload(e.dataTransfer.files[0], "home");
                 }}
-                className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition"
+                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
               >
                 <input
                   type="file"
@@ -361,7 +442,7 @@ export default function BecomeSitter() {
                       <img
                         src={homePhotoPreview}
                         alt="Home preview"
-                        className="mx-auto h-32 w-48 rounded-lg object-cover border-2 border-blue-100"
+                        className="mx-auto h-32 w-48 rounded-lg object-cover border-2 border-blue-100 shadow-lg"
                       />
                       <p className="text-xs text-gray-500">Click to change photo</p>
                     </div>
@@ -388,7 +469,7 @@ export default function BecomeSitter() {
               <div className="flex gap-3">
                 <select
                   required
-                  className="input"
+                  className="input flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 bg-white"
                   onChange={(e) =>
                     setForm((p) => ({
                       ...p,
@@ -405,7 +486,7 @@ export default function BecomeSitter() {
                 </select>
                 <select
                   required
-                  className="input"
+                  className="input flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 bg-white"
                   onChange={(e) =>
                     setForm((p) => ({
                       ...p,
@@ -427,7 +508,7 @@ export default function BecomeSitter() {
 
             {/* Services */}
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+              <label className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2 uppercase tracking-wide">
                 <Sparkles size={16} /> Services Offered
               </label>
               <div className="mt-3 flex gap-3 flex-wrap">
@@ -436,10 +517,10 @@ export default function BecomeSitter() {
                     key={s}
                     type="button"
                     onClick={() => toggleService(s)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium border-2 transition ${
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium border-2 transition-all ${
                       form.services.includes(s)
-                        ? "bg-gradient-to-r from-[#0047FF] to-[#0098D7] text-white border-transparent shadow-md"
-                        : "bg-white hover:bg-gray-50 border-gray-200"
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-lg"
+                        : "bg-white hover:bg-gray-50 border-gray-200 hover:border-blue-500 text-gray-700"
                     }`}
                   >
                     {s}
@@ -451,7 +532,7 @@ export default function BecomeSitter() {
             {/* Price */}
             <Field label="Price per Day" icon={<IndianRupee size={16} />} required>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">
                   ₹
                 </span>
                 <input
@@ -459,7 +540,7 @@ export default function BecomeSitter() {
                   min={100}
                   required
                   placeholder="500"
-                  className="input pl-8"
+                  className="input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
                   onChange={(e) =>
                     setForm({ ...form, price: `₹${e.target.value} / day` })
                   }
@@ -473,7 +554,8 @@ export default function BecomeSitter() {
                 required
                 minLength={50}
                 placeholder="Tell pet owners why they can trust you with their beloved pets. Mention your experience, love for animals, and commitment to their care..."
-                className="input min-h-[120px] resize-none"
+                className="input min-h-[120px] resize-none w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
               />
               <p className="mt-1 text-xs text-gray-500">
@@ -484,7 +566,7 @@ export default function BecomeSitter() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full mt-8 py-4 rounded-full bg-gradient-to-r from-[#0047FF] to-[#0098D7] text-white font-semibold hover:opacity-95 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-[1.02] shadow-lg hover:shadow-xl transform"
             >
               Submit Application
             </button>
@@ -552,7 +634,7 @@ function SectionHeader({ title }) {
 function Field({ label, icon, children, required, info }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+      <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2 uppercase tracking-wide">
         {icon} {label} {required && <span className="text-red-500">*</span>}
       </label>
       {info && <p className="text-xs text-gray-500 mb-2">{info}</p>}
@@ -563,7 +645,7 @@ function Field({ label, icon, children, required, info }) {
 
 function Policy({ icon, title, text }) {
   return (
-    <div className="bg-white rounded-2xl border shadow-sm p-6 flex gap-4 hover:shadow-md transition">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-6 flex gap-4 hover:shadow-lg transition-shadow">
       <div className="text-blue-600 shrink-0">{icon}</div>
       <div>
         <h3 className="font-semibold text-gray-900">{title}</h3>

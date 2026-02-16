@@ -2,64 +2,122 @@ import mongoose from "mongoose";
 
 const sitterSchema = new mongoose.Schema(
   {
-    name: String,
-    city: String,
-    experience: String,
-    services: [String],
-    price: String,
+    // 👤 Basic Information
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    city: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    experience: {
+      type: String,
+      required: true
+    },
+    services: {
+      type: [String],
+      default: []
+    },
+    price: {
+      type: String,
+      required: true
+    },
+
+    // 🏠 Address & Location
+    address: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+        default: [0, 0]
+      }
+    },
 
     // 🔥 Profile fields
     bio: {
       type: String,
-      default: "",
+      default: ""
     },
     photo: {
       type: String,
-      default: "",
+      default: ""
+    },
+    homePhoto: {
+      type: String,
+      default: ""
+    },
+
+    // 🆔 Identity Verification
+    aadhaarNumber: {
+      type: String,
+      trim: true,
+      default: ""
+    },
+    panNumber: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      default: ""
     },
 
     // 🔥 Stats
     totalBookings: {
       type: Number,
-      default: 0,
+      default: 0
     },
     averageRating: {
       type: Number,
-      default: 0,
+      default: 0
     },
     verified: {
       type: Boolean,
-      default: false,
+      default: false
     },
 
-    // 🔴 THIS IS WHAT WAS MISSING
+    // 📅 Availability
     availableDates: {
       type: [String],
-      default: [],
+      default: []
     },
     isActive: {
       type: Boolean,
-      default: true,
-    }, 
+      default: true
+    },
     
     // 🏦 Professional Bank Details
     bankDetails: {
       accountHolderName: { 
         type: String,
-        trim: true
+        trim: true,
+        default: ""
       },
       accountNumber: { 
         type: String,
-        trim: true
+        trim: true,
+        default: ""
       },
       ifscCode: { 
         type: String,
         uppercase: true,
-        trim: true
+        trim: true,
+        default: ""
       },
       bankName: { 
         type: String,
-        trim: true
+        trim: true,
+        default: ""
       },
       branchName: { 
         type: String,
@@ -68,8 +126,8 @@ const sitterSchema = new mongoose.Schema(
       },
       accountType: { 
         type: String,
-        enum: ["savings", "current"],
-        default: "savings"
+        enum: ["savings", "current", ""],
+        default: ""
       },
       verified: { 
         type: Boolean, 
@@ -84,24 +142,33 @@ const sitterSchema = new mongoose.Schema(
       },
       // Store verification documents (optional for future use)
       documents: [{
-        type: { type: String }, // "cancelled_cheque", "passbook", etc.
+        type: { 
+          type: String,
+          enum: ["cancelled_cheque", "passbook", "bank_statement", ""]
+        },
         url: String,
-        uploadedAt: { type: Date, default: Date.now }
+        uploadedAt: { 
+          type: Date, 
+          default: Date.now 
+        }
       }]
-    },
-    location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number], // [longitude, latitude]
-        required: true,
-      },
     }
   },
-  { timestamps: true }
+  { 
+    timestamps: true 
+  }
 );
+
+// 🗺️ Geospatial index for location-based queries
 sitterSchema.index({ location: "2dsphere" });
+
+// 📍 Index for city searches
+sitterSchema.index({ city: 1 });
+
+// ✅ Index for active sitters
+sitterSchema.index({ isActive: 1 });
+
+// ⭐ Index for ratings
+sitterSchema.index({ averageRating: -1 });
+
 export default mongoose.model("Sitter", sitterSchema);
