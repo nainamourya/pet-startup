@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
+import { Link } from "react-router-dom";
 // import { Link } from "react-router-dom";
 // import FindSitter from './../../../pages/FindSitter';
 
@@ -325,7 +326,7 @@ export default function Hero() {
           transition={{ delay: 0.4, duration: 0.6 }}
           className="mt-10 sm:mt-12 flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-        {/* <Link to="/find"> */}
+        <Link to="/find">
         
         <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#0047FF] to-[#0098D7] text-white font-semibold text-base sm:text-lg hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group">
             <span>Find a Sitter</span>
@@ -333,9 +334,9 @@ export default function Hero() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </button>
-        {/* </Link> */}
+        </Link>
 
-         {/* <Link to="/become"> */}
+         <Link to="/become">
          <button className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/90 backdrop-blur-sm border-2 border-gray-200 text-[#0F172A] font-semibold text-base sm:text-lg hover:bg-gray-50 hover:border-gray-300 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 group shadow-md">
             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -343,7 +344,7 @@ export default function Hero() {
             <span>Become a Sitter</span>
           </button>
          
-         {/* </Link> */}
+         </Link>
         </motion.div>
 
         {/* Social Proof */}

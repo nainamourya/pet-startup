@@ -66,7 +66,7 @@ export default function Footer() {
             <div className="flex gap-3">
               <SocialLink href="https://facebook.com" icon={<Facebook className="w-5 h-5" />} label="Facebook" />
               <SocialLink href="https://twitter.com" icon={<Twitter className="w-5 h-5" />} label="Twitter" />
-              <SocialLink href="https://instagram.com" icon={<Instagram className="w-5 h-5" />} label="Instagram" />
+              <SocialLink href="https://www.instagram.com/petroo_petcare" icon={<Instagram className="w-5 h-5" />} label="Instagram" />
               <SocialLink href="https://linkedin.com" icon={<Linkedin className="w-5 h-5" />} label="LinkedIn" />
             </div>
           </div>
@@ -143,10 +143,24 @@ export default function Footer() {
             Get in Touch
           </h4>
           <div className="grid sm:grid-cols-3 gap-4">
-            <ContactItem icon={<Mail />} text="support@petsitter.com" />
-            <ContactItem icon={<Phone />} text="+91 90000 00000" />
-            <ContactItem icon={<MapPin />} text="Mumbai, India" />
-          </div>
+  <ContactItem
+    icon={<Mail className="w-5 h-5 text-blue-400" />}
+    text="nainam6025@gmail.com"
+    href="mailto:nainam6025@gmail.com"
+  />
+
+  <ContactItem
+    icon={<Phone className="w-5 h-5 text-green-400" />}
+    text="+91 7977342732"
+    href="tel:+917977342732"
+  />
+
+  <ContactItem
+    icon={<MapPin className="w-5 h-5 text-purple-400" />}
+    text="Mumbai, India"
+    href="https://www.google.com/maps/search/?api=1&query=Mumbai,India"
+  />
+</div>
         </div>
 
         {/* Divider */}
@@ -220,17 +234,19 @@ function SocialLink({ href, icon, label }) {
   );
 }
 
-function ContactItem({ icon, text }) {
+function ContactItem({ icon, text, href }) {
   return (
-    <div className="flex items-center gap-3 text-slate-400">
-      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 flex-shrink-0">
-        {icon}
-      </div>
-      <span className="text-sm">{text}</span>
-    </div>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+    >
+      {icon}
+      <span className="text-gray-800 font-medium">{text}</span>
+    </a>
   );
 }
-
 function TrustBadge({ text }) {
   return (
     <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10 font-semibold">
