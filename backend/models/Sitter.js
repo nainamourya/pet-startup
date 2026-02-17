@@ -32,6 +32,10 @@ const sitterSchema = new mongoose.Schema(
       trim: true,
       default: ""
     },
+    phone: {
+      type: String,
+      required: true,
+    },
     location: {
       type: {
         type: String,
@@ -44,7 +48,7 @@ const sitterSchema = new mongoose.Schema(
         default: [0, 0]
       }
     },
-
+  
     // 🔥 Profile fields
     bio: {
       type: String,

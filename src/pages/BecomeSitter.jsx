@@ -17,6 +17,7 @@ import {
   CreditCard,
   Home,
   CheckCircle2,
+  Phone,
 } from "lucide-react";
 
 export default function BecomeSitter() {
@@ -32,6 +33,7 @@ export default function BecomeSitter() {
     aadhaarNumber: "",
     panNumber: "",
     homePhoto: "",
+    phone: "",          // ✅ FIX 1: phone added to form state (was missing, causing crash)
   });
 
   const [success, setSuccess] = useState(false);
@@ -50,19 +52,19 @@ export default function BecomeSitter() {
   const uploadPhoto = async (file) => {
     const formData = new FormData();
     formData.append("photo", file);
-  
+
     const res = await fetch(`${API_BASE_URL}/api/sitters/upload-photo`, {
       method: "POST",
       body: formData,
     });
-  
+
     if (!res.ok) {
       const errorData = await res.json();
       throw new Error(errorData.message || "Failed to upload photo");
     }
 
     const data = await res.json();
-    
+
     if (!data.imageUrl) {
       throw new Error("No image URL returned from server");
     }
@@ -72,17 +74,17 @@ export default function BecomeSitter() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
       alert("Please login first.");
       return;
     }
-  
+
     try {
       let profileImageUrl = "";
       let homeImageUrl = "";
-  
+
       // Upload profile photo (optional - continue even if fails)
       if (photoPreview) {
         const profileFile = document.getElementById("profile-photo").files[0];
@@ -97,7 +99,7 @@ export default function BecomeSitter() {
           }
         }
       }
-  
+
       // Upload home photo (optional - continue even if fails)
       if (homePhotoPreview) {
         const homeFile = document.getElementById("home-photo").files[0];
@@ -112,7 +114,7 @@ export default function BecomeSitter() {
           }
         }
       }
-  
+
       console.log("Creating sitter profile with data:", {
         userId: user.id,
         ...form,
@@ -125,12 +127,12 @@ export default function BecomeSitter() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
-          ...form,
+          ...form,               // ✅ FIX 2: form.phone now sent to server automatically via spread
           photo: profileImageUrl,
           homePhoto: homeImageUrl,
         }),
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         console.error("Server error:", errorData);
@@ -143,7 +145,7 @@ export default function BecomeSitter() {
       if (!data.sitter || !data.sitter._id) {
         throw new Error("Invalid response from server - no sitter ID returned");
       }
-  
+
       localStorage.setItem(
         "user",
         JSON.stringify({
@@ -152,7 +154,7 @@ export default function BecomeSitter() {
           sitterProfile: String(data.sitter._id),
         })
       );
-  
+
       setSuccess(true);
     } catch (err) {
       console.error("Error creating sitter profile:", err);
@@ -326,6 +328,18 @@ export default function BecomeSitter() {
                   Use Location
                 </button>
               </div>
+            </Field>
+
+            {/* ✅ FIX 3: Phone field now uses form.phone / setForm instead of undefined phone/setPhone */}
+            <Field label="Phone Number" icon={<Phone size={16} />} required>
+              <input
+                required
+                type="tel"
+                placeholder="Enter your mobile number"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
             </Field>
 
             {/* Verification Documents Section */}
@@ -631,10 +645,11 @@ function SectionHeader({ title }) {
   );
 }
 
+// ✅ FIX 4: Removed duplicate conflicting className on label ("block" + "flex" in separate className props)
 function Field({ label, icon, children, required, info }) {
   return (
     <div>
-      <label className="block text-sm font-bold text-gray-900 mb-2 flex items-center gap-2 uppercase tracking-wide">
+      <label className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
         {icon} {label} {required && <span className="text-red-500">*</span>}
       </label>
       {info && <p className="text-xs text-gray-500 mb-2">{info}</p>}

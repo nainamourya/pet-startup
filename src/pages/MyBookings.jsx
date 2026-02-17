@@ -497,7 +497,29 @@ export default function MyBookings() {
                         </div>
                       </div>
                     )}
+{/* Contact Sitter Section */}
+{b.status === "confirmed" && b.payment?.paid && b.sitterId?.phone && (
+  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200">
+    <div className="flex items-center gap-2 mb-3">
+      <Icons.Info className="w-5 h-5 text-orange-600" />
+      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+        Contact Sitter
+      </h4>
+    </div>
 
+    <a
+      href={`tel:${b.sitterId.phone}`}
+      className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all duration-200 hover:scale-105 shadow-md"
+    >
+      📞 Call Sitter
+    </a>
+
+    <p className="text-xs text-gray-600 mt-3">
+      For your safety, please keep all payments and booking changes within Petroo.
+      Services arranged outside the platform are not covered under our support policy.
+    </p>
+  </div>
+)}
                     {/* Review Section */}
                     {!b.reviewed && b.status === "confirmed" && (
                       <div className="pt-4 border-t border-gray-100">

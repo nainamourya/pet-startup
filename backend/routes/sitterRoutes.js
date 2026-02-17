@@ -177,7 +177,8 @@ router.post("/", async (req, res) => {
       address,
       aadhaarNumber,
       panNumber,
-      homePhoto
+      homePhoto,
+      phone, 
     } = req.body;
 
     // Validation
@@ -209,6 +210,7 @@ router.post("/", async (req, res) => {
       aadhaarNumber: aadhaarNumber || "",
       panNumber: panNumber || "",
       homePhoto: homePhoto || "",
+      phone: phone || "",   // ✅ FIX 3: Added phone to sitterData object
       availableDates: [],
       isActive: true,
     };
@@ -386,7 +388,7 @@ router.patch("/:id", requireAuth, async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const allowed = ["name", "city", "experience", "services", "price", "bio", "photo", "availableDates", "address", "homePhoto"];
+    const allowed = ["name", "city", "experience", "services", "price", "bio", "photo", "availableDates", "address", "homePhoto", "phone"];
     const updateData = {};
     Object.keys(req.body).forEach((key) => {
       if (requester.role === "admin" || allowed.includes(key)) {

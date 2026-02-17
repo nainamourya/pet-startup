@@ -49,28 +49,37 @@ router.get("/", async (req, res) => {
     if (sitterId) filter.sitterId = sitterId;
 
     let bookings = await Booking.find(filter)
-      .populate("sitterId")
+      .populate("sitterId", "name city price phone")
       .populate("ownerId");
-      // 🔥 AUTO COMPLETE LOGIC
-      for (const booking of bookings) {
-        if (
-          booking.status === "confirmed" &&
-          booking.payment?.paid &&
-          isBookingCompleted(booking)
-        ) {
-          booking.status = "completed";
-          booking.completedAt = new Date();
-          await booking.save();
-        }
+
+    // 🔥 AUTO COMPLETE + PHONE PROTECTION
+    for (const booking of bookings) {
+      // Auto complete
+      if (
+        booking.status === "confirmed" &&
+        booking.payment?.paid &&
+        isBookingCompleted(booking)
+      ) {
+        booking.status = "completed";
+        booking.completedAt = new Date();
+        await booking.save();
       }
+
+      // 🔐 Hide phone if not confirmed or not paid
+      if (
+        booking.sitterId &&
+        (booking.status !== "confirmed" || !booking.payment?.paid)
+      ) {
+        booking.sitterId.phone = undefined;
+      }
+    }
+
     res.json(bookings);
   } catch (error) {
     console.error("Fetch bookings error:", error);
     res.status(500).json({ message: "Failed to fetch bookings" });
   }
 });
-
-
 /* ============================
    CREATE BOOKING
 ============================ */
