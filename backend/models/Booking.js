@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { Phone } from 'lucide-react';
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -20,7 +21,7 @@ const bookingSchema = new mongoose.Schema(
       // required: true, // 🔥 PRICE IS NOW FIXED HERE
     },
     date: String,
-
+    phone: String, // ✅ NEW FIELD TO STORE SITTER'S PHONE NUMBER AT TIME OF BOOKING  
     walk: {
       date: String,
       from: String,
@@ -58,6 +59,10 @@ const bookingSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
+    earningsCredited: {
+      type: Boolean,
+      default: false
+    },
     // ✅ ADD THIS BLOCK
     payment: {
       paid: {
@@ -71,7 +76,16 @@ const bookingSchema = new mongoose.Schema(
     },
     refunded: { type: Boolean, default: false },
 refundedAt: Date,
-  },
+cancelledAt: Date,
+
+refundAmount: {
+  type: Number,
+  default: 0,
+},
+
+
+},
+  
 
   
   { timestamps: true }

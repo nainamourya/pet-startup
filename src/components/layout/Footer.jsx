@@ -20,10 +20,10 @@ export default function Footer() {
     <footer className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-slate-300 overflow-hidden">
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-purple-900/5 pointer-events-none" />
-      
+
       {/* Animated background elements */}
       <motion.div
-        animate={{ 
+        animate={{
           scale: [1, 1.2, 1],
           opacity: [0.03, 0.05, 0.03]
         }}
@@ -31,7 +31,7 @@ export default function Footer() {
         className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"
       />
       <motion.div
-        animate={{ 
+        animate={{
           scale: [1, 1.3, 1],
           opacity: [0.03, 0.05, 0.03]
         }}
@@ -56,7 +56,7 @@ export default function Footer() {
                 </h3>
               </div>
             </Link>
-            
+
             <p className="text-slate-400 leading-relaxed mb-6 max-w-sm">
               A trusted platform connecting pet parents with reliable sitters —
               built on care, transparency, and peace of mind.
@@ -91,6 +91,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               <FooterLink to="/privacy" text="Privacy Policy" />
+              <FooterLink to="/refund" text="Refund Policy" />
               <FooterLink to="/terms" text="Terms of Service" />
               <FooterLink to="/contact" text="Contact" />
               <FooterLink to="/faq" text="FAQ" />
@@ -105,7 +106,7 @@ export default function Footer() {
             <p className="text-slate-400 text-sm mb-4">
               Subscribe to our newsletter for pet care tips and updates.
             </p>
-            
+
             <form onSubmit={handleSubscribe} className="relative">
               <input
                 type="email"
@@ -143,24 +144,24 @@ export default function Footer() {
             Get in Touch
           </h4>
           <div className="grid sm:grid-cols-3 gap-4">
-  <ContactItem
-    icon={<Mail className="w-5 h-5 text-blue-400" />}
-    text="nainam6025@gmail.com"
-    href="mailto:nainam6025@gmail.com"
-  />
+            <ContactItem
+              icon={<Mail className="w-5 h-5 text-blue-400" />}
+              text="nainam6025@gmail.com"
+              href="mailto:nainam6025@gmail.com"
+            />
 
-  <ContactItem
-    icon={<Phone className="w-5 h-5 text-green-400" />}
-    text="+91 7977342732"
-    href="tel:+917977342732"
-  />
+            <ContactItem
+              icon={<Phone className="w-5 h-5 text-green-400" />}
+              text="+91 7977342732"
+              href="tel:+917977342732"
+            />
 
-  <ContactItem
-    icon={<MapPin className="w-5 h-5 text-purple-400" />}
-    text="Mumbai, India"
-    href="https://www.google.com/maps/search/?api=1&query=Mumbai,India"
-  />
-</div>
+            <ContactItem
+              icon={<MapPin className="w-5 h-5 text-purple-400" />}
+              text="Mumbai, India"
+              href="https://www.google.com/maps/search/?api=1&query=Mumbai,India"
+            />
+          </div>
         </div>
 
         {/* Divider */}
@@ -207,8 +208,8 @@ export default function Footer() {
 function FooterLink({ to, text }) {
   return (
     <li>
-      <Link 
-        to={to} 
+      <Link
+        to={to}
         className="group flex items-center gap-2 text-slate-400 hover:text-white transition-colors duration-200"
       >
         <ArrowRight className="w-4 h-4 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />

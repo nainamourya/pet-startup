@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Search, MapPin, Calendar, PawPrint, Star, 
+import {
+  Search, MapPin, Calendar, PawPrint, Star,
   Loader2, Navigation, Target
 } from "lucide-react";
 import API_BASE_URL from "../config/api";
@@ -56,7 +56,7 @@ export default function FindSitter() {
   const [searchLocation, setSearchLocation] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [radius, setRadius] = useState(5); // Default 5km
-  
+
   // UI state
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
@@ -88,13 +88,13 @@ export default function FindSitter() {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        
+
         try {
           const res = await fetch(
             `${API_BASE_URL}/api/location/reverse-geocode?lat=${latitude}&lon=${longitude}`
           );
           const data = await res.json();
-          
+
           setCoordinates({ lat: latitude, lng: longitude });
           setSearchLocation(data.display_name || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
           setLocationLoading(false);
@@ -125,7 +125,7 @@ export default function FindSitter() {
         `${API_BASE_URL}/api/location/geocode?address=${encodeURIComponent(address)}`
       );
       const data = await res.json();
-      
+
       if (data.lat && data.lon) {
         return { lat: parseFloat(data.lat), lng: parseFloat(data.lon) };
       }
@@ -189,9 +189,9 @@ export default function FindSitter() {
       // Search sitters by location
       const radiusInMeters = radius * 1000;
       const url = `${API_BASE_URL}/api/sitters?lat=${searchCoords.lat}&lng=${searchCoords.lng}&radius=${radiusInMeters}`;
-      
+
       console.log("🔍 Searching with:", { lat: searchCoords.lat, lng: searchCoords.lng, radius: radiusInMeters });
-      
+
       const res = await fetch(url);
       const sittersData = await res.json();
 
@@ -220,7 +220,7 @@ export default function FindSitter() {
 
   return (
     <section className="min-h-screen pt-20 sm:pt-28 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-indigo-50 relative overflow-hidden">
-      
+
       {/* Floating Background Icons */}
       <motion.div
         animate={{ y: [0, -12, 0], rotate: [0, 5, 0] }}
@@ -320,9 +320,9 @@ export default function FindSitter() {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <Field icon={<PawPrint size={18} className="text-purple-600" />} label="Pet Type">
-              <select 
+              <select
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 font-medium bg-white"
-                value={petType} 
+                value={petType}
                 onChange={(e) => setPetType(e.target.value)}
               >
                 <option>Dog</option>
@@ -332,9 +332,9 @@ export default function FindSitter() {
             </Field>
 
             <Field icon={<Search size={18} className="text-green-600" />} label="Service">
-              <select 
+              <select
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 font-medium bg-white"
-                value={service} 
+                value={service}
                 onChange={(e) => setService(e.target.value)}
               >
                 <option>Walk</option>
@@ -350,17 +350,17 @@ export default function FindSitter() {
               </label>
               <div className="flex gap-3">
                 <div className="flex-1 relative">
-                  <input 
+                  <input
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                    placeholder="e.g., Bandra West, Mumbai" 
-                    value={searchLocation} 
+                    placeholder="e.g., Bandra West, Mumbai"
+                    value={searchLocation}
                     onChange={(e) => {
                       setSearchLocation(e.target.value);
                       // Clear locked coordinates when user manually types
                       if (coordinates) {
                         setCoordinates(null);
                       }
-                    }} 
+                    }}
                   />
                   {coordinates && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -417,11 +417,10 @@ export default function FindSitter() {
                       key={r}
                       type="button"
                       onClick={() => setRadius(r)}
-                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all ${
-                        radius === r
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-sm font-semibold transition-all ${radius === r
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {r}km
                     </button>
@@ -586,10 +585,22 @@ export default function FindSitter() {
                     <div className="flex sm:flex-col items-center sm:items-end gap-4 sm:gap-3 w-full sm:w-auto">
                       <div className="flex-1 sm:flex-none text-left sm:text-right">
                         <p className="text-xs text-gray-500 mb-1">Starting at</p>
-                        <p className="text-2xl font-bold text-gray-900">{sitter.price}</p>
+                        <p className="text-2xl font-bold text-gray-900">
+                          ₹{
+                            service === "Boarding"
+                              ? sitter.price?.boarding
+                              : service === "Walk"
+                                ? sitter.price?.walking60
+                                : service === "Day Care"
+                                  ? sitter.price?.dayCare
+                                  : service === "Hourly Sitting"
+                                    ? sitter.price?.hourly
+                                    : sitter.price?.dayCare
+                          }
+                        </p>
                         <p className="text-xs text-gray-500 mt-1">per service</p>
                       </div>
-                      
+
                       <button
                         onClick={() =>
                           navigate(`/book/${sitter._id}`, {
@@ -609,68 +620,73 @@ export default function FindSitter() {
           </motion.div>
         )}
 
+
         {/* Empty State */}
-        {!loading && results.length === 0 && searchLocation && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl border border-gray-200 p-12 text-center"
-          >
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
-              <Search className="w-10 h-10 text-gray-400" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">No Sitters Found</h3>
-            <p className="text-gray-600 mb-6">
-              We couldn't find any sitters matching your criteria. Try expanding your radius.
-            </p>
-            <button
-              onClick={() => setRadius(Math.min(radius + 2, 10))}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all"
+        {
+          !loading && results.length === 0 && searchLocation && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl border border-gray-200 p-12 text-center"
             >
-              <Search className="w-5 h-5" />
-              Expand to {Math.min(radius + 2, 10)}km
-            </button>
-          </motion.div>
-        )}
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                <Search className="w-10 h-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">No Sitters Found</h3>
+              <p className="text-gray-600 mb-6">
+                We couldn't find any sitters matching your criteria. Try expanding your radius.
+              </p>
+              <button
+                onClick={() => setRadius(Math.min(radius + 2, 10))}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all"
+              >
+                <Search className="w-5 h-5" />
+                Expand to {Math.min(radius + 2, 10)}km
+              </button>
+            </motion.div>
+          )
+        }
 
         {/* How It Works Section */}
-        {results.length === 0 && !searchLocation && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-16"
-          >
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">How It Works</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                  <Search className="w-8 h-8 text-blue-600" />
+        {
+          results.length === 0 && !searchLocation && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mt-16"
+            >
+              <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">How It Works</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                    <Search className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">1. Search</h3>
+                  <p className="text-sm text-gray-600">Enter your location to find available sitters nearby</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">1. Search</h3>
-                <p className="text-sm text-gray-600">Enter your location to find available sitters nearby</p>
-              </div>
-              
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                  <Icons.Check className="w-8 h-8 text-green-600" />
+
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                    <Icons.Check className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">2. Choose</h3>
+                  <p className="text-sm text-gray-600">Browse verified profiles and read reviews from other pet owners</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">2. Choose</h3>
-                <p className="text-sm text-gray-600">Browse verified profiles and read reviews from other pet owners</p>
-              </div>
-              
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
-                  <Icons.Heart className="w-8 h-8 text-purple-600" />
+
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center hover:shadow-lg transition-shadow">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                    <Icons.Heart className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">3. Book</h3>
+                  <p className="text-sm text-gray-600">Secure your booking with our trusted payment system</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">3. Book</h3>
-                <p className="text-sm text-gray-600">Secure your booking with our trusted payment system</p>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </section>
+            </motion.div>
+          )
+        }
+      </div >
+    </section >
   );
 }
 

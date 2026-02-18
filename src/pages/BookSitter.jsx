@@ -109,13 +109,14 @@ export default function BookSitter() {
   const [vetNumber, setVetNumber] = useState("");
   const [emergencyNotes, setEmergencyNotes] = useState("");
   const [petBreed, setPetBreed] = useState("");
-const [customBreed, setCustomBreed] = useState("");
+  const [customBreed, setCustomBreed] = useState("");
 
   // Other services
   const [date, setDate] = useState("");
 
   const isWalking = service?.toLowerCase().includes("walk");
   const isBoarding = service?.toLowerCase().includes("board");
+  const isDayCare = service?.toLowerCase().includes("day");
 
   const handleConfirm = async () => {
     if (!sitter?._id) {
@@ -164,7 +165,7 @@ const [customBreed, setCustomBreed] = useState("");
     }
 
     setLoading(true);
-    
+
     const res = await fetch(`${API_BASE_URL}/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -179,12 +180,12 @@ const [customBreed, setCustomBreed] = useState("");
 
         boarding: isBoarding
           ? {
-              startDate: boardStart,
-              endDate: boardEnd,
-              medicine,
-              vetNumber,
-              emergencyNotes,
-            }
+            startDate: boardStart,
+            endDate: boardEnd,
+            medicine,
+            vetNumber,
+            emergencyNotes,
+          }
           : undefined,
 
         date: !isWalking && !isBoarding ? date : undefined,
@@ -209,7 +210,22 @@ const [customBreed, setCustomBreed] = useState("");
 
     navigate("/my-bookings");
   };
+  const getServicePrice = () => {
+    if (!sitter?.price) return 0;
 
+    switch (service) {
+      case "Boarding":
+        return sitter.price.boarding;
+      case "Walk":
+        return sitter.price.walking60;
+      case "Day Care":
+        return sitter.price.dayCare;
+      case "Hourly Sitting":
+        return sitter.price.hourly;
+      default:
+        return sitter.price.dayCare;
+    }
+  };
   if (!sitter) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-24 px-4 flex items-center justify-center">
@@ -256,10 +272,10 @@ const [customBreed, setCustomBreed] = useState("");
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg flex-shrink-0">
               {sitter.name?.charAt(0).toUpperCase()}
             </div>
-            
+
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">{sitter.name}</h2>
-              
+
               <div className="flex flex-wrap gap-4 mb-4">
                 <div className="flex items-center gap-2 text-gray-600">
                   <Icons.Location className="w-5 h-5 text-blue-600" />
@@ -272,10 +288,22 @@ const [customBreed, setCustomBreed] = useState("");
                   <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">Service</p>
                   <p className="text-lg font-bold text-gray-900">{service}</p>
                 </div>
-                
+
                 <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100">
                   <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Price</p>
-                  <p className="text-lg font-bold text-gray-900">₹{sitter.price}</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    ₹{
+                      service === "Boarding"
+                        ? sitter.price?.boarding
+                        : service === "Walk"
+                          ? sitter.price?.walking60
+                          : service === "Day Care"
+                            ? sitter.price?.dayCare
+                            : service === "Hourly Sitting"
+                              ? sitter.price?.hourly
+                              : sitter.price?.dayCare
+                    }
+                  </p>
                 </div>
               </div>
             </div>
@@ -349,41 +377,41 @@ const [customBreed, setCustomBreed] = useState("");
                 </div>
               </div>
               <div>
-  <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
-    Breed *
-  </label>
+                <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                  Breed *
+                </label>
 
-  <select
-    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 bg-white"
-    value={petBreed}
-    onChange={(e) => {
-      setPetBreed(e.target.value);
-      setCustomBreed("");
-      setError("");
-    }}
-  >
-    <option value="">Select breed</option>
+                <select
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 bg-white"
+                  value={petBreed}
+                  onChange={(e) => {
+                    setPetBreed(e.target.value);
+                    setCustomBreed("");
+                    setError("");
+                  }}
+                >
+                  <option value="">Select breed</option>
 
-    {(petType === "Dog" ? dogBreeds : catBreeds).map((breed) => (
-      <option key={breed} value={breed}>
-        {breed}
-      </option>
-    ))}
-  </select>
+                  {(petType === "Dog" ? dogBreeds : catBreeds).map((breed) => (
+                    <option key={breed} value={breed}>
+                      {breed}
+                    </option>
+                  ))}
+                </select>
 
-  {petBreed === "Other" && (
-    <input
-      type="text"
-      placeholder="Enter breed"
-      className="mt-3 w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900"
-      value={customBreed}
-      onChange={(e) => {
-        setCustomBreed(e.target.value);
-        setError("");
-      }}
-    />
-  )}
-</div>
+                {petBreed === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Enter breed"
+                    className="mt-3 w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900"
+                    value={customBreed}
+                    onChange={(e) => {
+                      setCustomBreed(e.target.value);
+                      setError("");
+                    }}
+                  />
+                )}
+              </div>
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
                   Special Notes (Optional)
@@ -599,6 +627,102 @@ const [customBreed, setCustomBreed] = useState("");
             </div>
           </div>
 
+
+          {/* Service Timing Policy - ENHANCED UI */}
+          {(isDayCare || isBoarding) && (
+            <div className="p-6 sm:p-8 border-b border-gray-100 bg-gradient-to-br from-indigo-50/40 via-purple-50/40 to-blue-50/40">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg">
+                  <Icons.Clock className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
+                    Service Timing Policy
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Standard operating hours & charges
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Day Care Card */}
+                {isDayCare && (
+                  <div className="bg-white rounded-2xl p-5 border-2 border-blue-200 shadow-md hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                          <Icons.Calendar className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-lg">Day Care</p>
+                          <p className="text-xs text-gray-500">12 hours supervised care</p>
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg">
+                        10:00 AM – 10:00 PM
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Boarding Card */}
+                {isBoarding && (
+                  <div className="bg-white rounded-2xl p-5 border-2 border-purple-200 shadow-md hover:shadow-xl transition-all duration-300">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                          <Icons.Home className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900 text-lg">Boarding</p>
+                          <p className="text-xs text-gray-500">24-hour overnight stay</p>
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg">
+                        10 AM – Next Day 10 AM
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Charges Card */}
+                <div className="bg-white rounded-2xl p-5 border-2 border-gray-200 shadow-md">
+                  <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-base">
+                    <Icons.AlertCircle className="w-5 h-5 text-orange-600" />
+                    Additional Charges
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-sm mb-1">Extra Hours</p>
+                        <p className="text-gray-700 text-sm"><span className="font-bold text-orange-600">₹100</span> per hour beyond standard timing</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
+                      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-sm mb-1">Extended Stay Policy</p>
+                        <p className="text-gray-700 text-sm">If service extends <span className="font-bold text-red-600">beyond 4 extra hours</span>, full day charge will apply</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info Note */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 flex gap-3">
+                  <Icons.AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-blue-900">
+                    <span className="font-bold">Note:</span> All timings are strict. Late pick-ups or early drop-offs will incur additional charges as per the policy above.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+
           {/* Error Alert */}
           {error && (
             <div className="p-6 sm:p-8 border-b border-gray-100">
@@ -624,6 +748,7 @@ const [customBreed, setCustomBreed] = useState("");
                   <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Processing...</span>
                 </>
+
               ) : (
                 <>
                   <Icons.Check className="w-6 h-6" />
@@ -632,7 +757,7 @@ const [customBreed, setCustomBreed] = useState("");
                 </>
               )}
             </button>
-            
+
             <p className="text-center text-sm text-gray-500 mt-4">
               You'll be able to pay after the sitter confirms your booking
             </p>

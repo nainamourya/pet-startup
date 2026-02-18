@@ -18,6 +18,7 @@ import {
   Home,
   CheckCircle2,
   Phone,
+  Info,
 } from "lucide-react";
 
 export default function BecomeSitter() {
@@ -26,7 +27,13 @@ export default function BecomeSitter() {
     city: "",
     experience: "",
     services: [],
-    price: "",
+    price: {
+      dayCare: "",
+      walking30: "",
+      walking60: "",
+      boarding: "",
+      hourly: "",
+    },
     bio: "",
     photo: "",
     address: "",
@@ -504,9 +511,8 @@ export default function BecomeSitter() {
                   onChange={(e) =>
                     setForm((p) => ({
                       ...p,
-                      experience: `${p.experience.split(" ")[0]} years ${
-                        e.target.value
-                      } months`,
+                      experience: `${p.experience.split(" ")[0]} years ${e.target.value
+                        } months`,
                     }))
                   }
                 >
@@ -526,16 +532,15 @@ export default function BecomeSitter() {
                 <Sparkles size={16} /> Services Offered
               </label>
               <div className="mt-3 flex gap-3 flex-wrap">
-                {["Walk", "Day Care", "Boarding"].map((s) => (
+                {["Walk", "Day Care", "Boarding", "Hourly Sitting"].map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => toggleService(s)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-medium border-2 transition-all ${
-                      form.services.includes(s)
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-lg"
-                        : "bg-white hover:bg-gray-50 border-gray-200 hover:border-blue-500 text-gray-700"
-                    }`}
+                    className={`px-5 py-2.5 rounded-full text-sm font-medium border-2 transition-all ${form.services.includes(s)
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-lg"
+                      : "bg-white hover:bg-gray-50 border-gray-200 hover:border-blue-500 text-gray-700"
+                      }`}
                   >
                     {s}
                   </button>
@@ -543,24 +548,70 @@ export default function BecomeSitter() {
               </div>
             </div>
 
-            {/* Price */}
-            <Field label="Price per Day" icon={<IndianRupee size={16} />} required>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">
-                  ₹
-                </span>
+            {/* Service Pricing Section */}
+            <SectionHeader title="Service Pricing" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Day Care (per day)" icon={<IndianRupee size={16} />} required>
                 <input
                   type="number"
-                  min={100}
+                  min="0"
                   required
                   placeholder="500"
-                  className="input w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-gray-900 placeholder-gray-400"
-                  onChange={(e) =>
-                    setForm({ ...form, price: `₹${e.target.value} / day` })
-                  }
+                  className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all"
+                  value={form.price.dayCare}
+                  onChange={(e) => setForm({ ...form, price: { ...form.price, dayCare: e.target.value } })}
                 />
-              </div>
-            </Field>
+              </Field>
+
+              <Field label="Walking (30 min)" icon={<IndianRupee size={16} />} required>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  placeholder="200"
+                  className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all"
+                  value={form.price.walking30}
+                  onChange={(e) => setForm({ ...form, price: { ...form.price, walking30: e.target.value } })}
+                />
+              </Field>
+
+              <Field label="Walking (60 min)" icon={<IndianRupee size={16} />} required>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  placeholder="350"
+                  className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all"
+                  value={form.price.walking60}
+                  onChange={(e) => setForm({ ...form, price: { ...form.price, walking60: e.target.value } })}
+                />
+              </Field>
+
+              <Field label="Boarding (per night)" icon={<IndianRupee size={16} />} required>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  placeholder="800"
+                  className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all"
+                  value={form.price.boarding}
+                  onChange={(e) => setForm({ ...form, price: { ...form.price, boarding: e.target.value } })}
+                />
+              </Field>
+
+              <Field label="Hourly Stay" icon={<IndianRupee size={16} />} required>
+                <input
+                  type="number"
+                  min="0"
+                  required
+                  placeholder="100"
+                  className="input w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 outline-none transition-all"
+                  value={form.price.hourly}
+                  onChange={(e) => setForm({ ...form, price: { ...form.price, hourly: e.target.value } })}
+                />
+              </Field>
+            </div>
 
             {/* Bio */}
             <Field label="About You" icon={<FileText size={16} />} required>
@@ -594,6 +645,70 @@ export default function BecomeSitter() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="space-y-6 sticky top-28"
         >
+          {/* Service Guidelines */}
+          <div className="bg-white rounded-2xl border border-blue-100 shadow-lg overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sparkles size={20} className="text-yellow-300" /> Service Guidelines
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Day Care Guidelines */}
+              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100">
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <Briefcase size={16} />
+                  </span>
+                  Day Care
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 font-bold">•</span>
+                    <span>Timing: <strong className="text-gray-900">10 AM – 10 PM</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 font-bold">•</span>
+                    <span>Early/Late: <strong className="text-gray-900">₹100 per hour</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 font-bold">•</span>
+                    <span>After 4 extra hours: <strong className="text-gray-900">Full day charge</strong></span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Boarding Guidelines */}
+              <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
+                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                    <Home size={16} />
+                  </span>
+                  Boarding
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>Cycle: <strong className="text-gray-900">10 AM – Next day 10 AM</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>Pickup after 10 AM: <strong className="text-gray-900">₹100/hour</strong></span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>After 4 extra hours: <strong className="text-gray-900">Full day charge</strong></span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="text-xs text-gray-500 italic bg-gray-50 p-3 rounded-lg">
+                <Info size={14} className="inline mr-1 -mt-0.5" />
+                These are standard guidelines. You can discuss specific arrangements with pet parents.
+              </div>
+            </div>
+          </div>
+
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
               Why Verification Matters

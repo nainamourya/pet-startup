@@ -22,8 +22,11 @@ const sitterSchema = new mongoose.Schema(
       default: []
     },
     price: {
-      type: String,
-      required: true
+      dayCare: { type: Number, default: 0 },
+      walking30: { type: Number, default: 0 },
+      walking60: { type: Number, default: 0 },
+      boarding: { type: Number, default: 0 },
+      hourly: { type: Number, default: 0 }
     },
 
     // 🏠 Address & Location
@@ -48,7 +51,7 @@ const sitterSchema = new mongoose.Schema(
         default: [0, 0]
       }
     },
-  
+
     // 🔥 Profile fields
     bio: {
       type: String,
@@ -99,43 +102,43 @@ const sitterSchema = new mongoose.Schema(
       type: Boolean,
       default: true
     },
-    
+
     // 🏦 Professional Bank Details
     bankDetails: {
-      accountHolderName: { 
+      accountHolderName: {
         type: String,
         trim: true,
         default: ""
       },
-      accountNumber: { 
+      accountNumber: {
         type: String,
         trim: true,
         default: ""
       },
-      ifscCode: { 
+      ifscCode: {
         type: String,
         uppercase: true,
         trim: true,
         default: ""
       },
-      bankName: { 
+      bankName: {
         type: String,
         trim: true,
         default: ""
       },
-      branchName: { 
+      branchName: {
         type: String,
         trim: true,
         default: ""
       },
-      accountType: { 
+      accountType: {
         type: String,
         enum: ["savings", "current", ""],
         default: ""
       },
-      verified: { 
-        type: Boolean, 
-        default: false 
+      verified: {
+        type: Boolean,
+        default: false
       },
       verifiedAt: {
         type: Date
@@ -146,20 +149,34 @@ const sitterSchema = new mongoose.Schema(
       },
       // Store verification documents (optional for future use)
       documents: [{
-        type: { 
+        type: {
           type: String,
           enum: ["cancelled_cheque", "passbook", "bank_statement", ""]
         },
         url: String,
-        uploadedAt: { 
-          type: Date, 
-          default: Date.now 
+        uploadedAt: {
+          type: Date,
+          default: Date.now
         }
-      }]
+      }],
+      balance: {
+        type: Number,
+        default: 0
+      },
+      totalEarnings: {
+        type: Number,
+        default: 0
+      },
+      totalWithdrawn: {
+        type: Number,
+        default: 0
+      },
     }
+
   },
-  { 
-    timestamps: true 
+
+  {
+    timestamps: true
   }
 );
 

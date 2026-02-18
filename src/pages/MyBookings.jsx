@@ -1,609 +1,419 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { openRazorpay } from "../utils/razorpayPayment";
-import { Link } from "react-router-dom";
 import API_BASE_URL from "../config/api";
-
-// Professional SVG Icons Component with Animations
-const Icons = {
-  Calendar: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  ),
-  Pet: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Location: ({ className = "w-5 h-5" }) => (
-    <svg className={`${className} animate-bounce`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  ),
-  Money: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Star: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-    </svg>
-  ),
-  Check: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-    </svg>
-  ),
-  Clock: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  Heart: ({ className = "w-5 h-5" }) => (
-    <svg className={`${className} animate-pulse`} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-    </svg>
-  ),
-  Shield: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  User: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  ),
-  Medical: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-    </svg>
-  ),
-  Home: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  ),
-  Alert: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-    </svg>
-  ),
-  Walk: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-    </svg>
-  ),
-  Info: ({ className = "w-5 h-5" }) => (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-};
-
-// Loading Spinner Component
-const LoadingSpinner = () => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-24 px-4 sm:px-6 lg:px-8">
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-          <Icons.Pet className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
-        </div>
-        <p className="mt-6 text-lg font-medium text-gray-700 animate-pulse">Loading your bookings...</p>
-        <p className="mt-2 text-sm text-gray-500">Please wait while we fetch your pet care appointments</p>
-      </div>
-    </div>
-  </div>
-);
-
-// Empty State Component
-const EmptyState = () => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center">
-    <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-      <Icons.Calendar className="w-10 h-10 text-blue-600" />
-    </div>
-    <h3 className="text-2xl font-bold text-gray-900 mb-3">No Bookings Yet</h3>
-    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-      Start your pet care journey today! Book trusted sitters for walks, boarding, or daycare services.
-    </p>
-    <Link to="/sitters">
-      <button className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg">
-        <Icons.Heart className="w-5 h-5" />
-        Find Pet Sitters
-      </button>
-    </Link>
-  </div>
-);
+import { socket } from "../socket";
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [statusAlert, setStatusAlert] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
+  /* ─── LOAD BOOKINGS ─── */
   const load = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) return;
-
     setLoading(true);
-
-    const ownerId = user._id || user.id;
-    const res = await fetch(
-      `${API_BASE_URL}/api/bookings?ownerId=${ownerId}`
-    );
     try {
+      const ownerId = user._id || user.id;
+      const res = await fetch(`${API_BASE_URL}/api/bookings?ownerId=${ownerId}`);
       const data = await res.json();
-
-      // Normalize response: some APIs may return { bookings: [...] } or an object on error
-      const normalized = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.bookings)
-        ? data.bookings
-        : Array.isArray(data?.data)
-        ? data.data
-        : [];
-
-      setBookings(normalized);
-
-      // 🔔 Owner soft notification
-      const lastSeen = localStorage.getItem("ownerLastSeenAt");
-      const lastSeenTime = lastSeen ? new Date(lastSeen) : new Date(0);
-
-      const changed = normalized.find(
-        (b) => b.status !== "pending" && new Date(b.updatedAt) > lastSeenTime
-      );
-
-      if (changed) {
-        setStatusAlert(
-          `Your booking with ${changed.sitterId?.name || "a sitter"} was ${changed.status}`
-        );
-      }
-
-      localStorage.setItem("ownerLastSeenAt", new Date().toISOString());
-    } catch (err) {
-      console.error("Failed to load bookings:", err);
-      setStatusAlert("Failed to load bookings. Please try again later.");
+      setBookings(Array.isArray(data) ? data : data?.bookings || []);
+    } catch (e) {
+      console.error(e);
       setBookings([]);
     } finally {
       setLoading(false);
     }
   };
+  const cancelBooking = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/bookings/${id}/cancel`, {
+        method: "PATCH",
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) {
+        alert(data.message || "Cancellation failed");
+        return;
+      }
+  
+      alert(
+        data.refundAmount > 0
+          ? `✅ Cancelled! Refund of ₹${data.refundAmount} (${data.refundPercent}%) will arrive in 5–7 business days.`
+          : `✅ Booking cancelled. No refund applicable.`
+      );
+      load(); // reload bookings
+    } catch (err) {
+      console.error("Cancel error:", err);
+      alert("Something went wrong");
+    }
+  };
+  useEffect(() => { load(); }, [location.pathname]);
 
+  /* ─── REAL-TIME: socket listens for sitter status changes ─── */
   useEffect(() => {
-    load();
-  }, [location.pathname]);
+    /* The sitter's bookings.js emits "status-updated" to the booking room.
+       We listen here so the pet owner's screen updates without refresh.
+       NOTE: pet owner must join the booking room too — add this to your
+       socket setup or server.js:
+         socket.on("join-booking", ({ bookingId }) => socket.join(bookingId));
+    */
+    bookings.forEach((b) => {
+      socket.emit("join-booking", { bookingId: b._id });
+    });
+
+    socket.on("status-updated", ({ bookingId, status }) => {
+      setBookings((prev) =>
+        prev.map((b) => b._id === bookingId ? { ...b, status } : b)
+      );
+    });
+
+    return () => socket.off("status-updated");
+  }, [bookings.length]); // re-run when new bookings load
+
+  /* ─── PAYMENT — instant state update, no reload ─── */
+  const handlePayment = async (b, amount) => {
+    try {
+      setPaymentLoading(b._id);
+      if (!amount || amount <= 0) {
+        alert("Invalid amount. Please contact the sitter.");
+        return;
+      }
+      await openRazorpay({ amount, bookingId: b._id });
+      // ✅ Update local state instantly — no reload
+      setBookings((prev) =>
+        prev.map((bk) =>
+          bk._id === b._id
+            ? { ...bk, payment: { paid: true, amount, paidAt: new Date().toISOString() } }
+            : bk
+        )
+      );
+    } catch (err) {
+      alert("Payment failed: " + err.message);
+    } finally {
+      setPaymentLoading(null);
+    }
+  };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-500 mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading your bookings...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-20 sm:pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-      {/* SEO-Friendly Header Section */}
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Icons.Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-              My <span className="text-blue-600">Bookings</span>
-            </h1>
-          </div>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-4">
-            Manage your pet care appointments, track services, and stay connected with trusted sitters
-          </p>
+      <div className="max-w-3xl mx-auto">
+
+        {/* PAGE TITLE */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+            My <span className="text-blue-600">Bookings</span>
+          </h1>
+          <p className="text-gray-500 mt-2 text-sm">Updates automatically — no refresh needed</p>
         </div>
 
-        {/* Status Alert */}
-        {statusAlert && (
-          <div className="mb-6 sm:mb-8 max-w-4xl mx-auto animate-fadeIn">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-xl p-4 sm:p-5 shadow-md">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <Icons.Check className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm sm:text-base font-semibold text-green-900 mb-1">Booking Update</h3>
-                  <p className="text-sm text-green-800">{statusAlert}</p>
-                </div>
-                <button
-                  onClick={() => setStatusAlert(null)}
-                  className="flex-shrink-0 text-green-600 hover:text-green-800 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+        {/* EMPTY STATE */}
+        {bookings.length === 0 && (
+          <div className="bg-white rounded-3xl shadow-lg p-12 text-center">
+            <p className="text-6xl mb-4">🐾</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">No Bookings Yet</h3>
+            <p className="text-gray-500 mb-6">Book a trusted sitter for your pet today!</p>
+            <Link to="/sitters">
+              <button className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 hover:scale-105 transition-all shadow-md">
+                Find Pet Sitters →
+              </button>
+            </Link>
           </div>
         )}
 
-        {/* Bookings Grid */}
-        {bookings.length === 0 ? (
-          <div className="max-w-3xl mx-auto">
-            <EmptyState />
-          </div>
-        ) : (
-          <div className="max-w-6xl mx-auto">
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Icons.Calendar className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Bookings</p>
-                    <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Icons.Check className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Confirmed</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {bookings.filter(b => b.status === "confirmed").length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Icons.Clock className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Pending</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {bookings.filter(b => b.status === "pending").length}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* ══════════════════════════════════════
+            BOOKING CARDS
+        ══════════════════════════════════════ */}
+        <div className="space-y-5">
+          {bookings.map((b) => {
+            const isPaid = !!b.payment?.paid;
+            const amount = b.servicePrice || (b.sitterId?.price ? parseInt(String(b.sitterId.price).replace(/[^\d]/g, "")) : 0);
 
-            {/* Bookings List */}
-            <div className="grid gap-4 sm:gap-6">
-              {bookings.map((b, index) => (
-                <div
-                  key={b._id}
-                  className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {/* Header Section */}
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center ring-2 ring-white ring-opacity-50">
-                          <Icons.User className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                            {b.sitterId?.name || "Sitter"}
-                          </h3>
-                          <p className="text-sm text-blue-100 flex items-center gap-1">
-                            <Icons.Shield className="w-4 h-4" />
-                            Verified Professional
-                          </p>
-                        </div>
+            return (
+              <div key={b._id} className="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300">
+
+                {/* CARD HEADER */}
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-lg ring-2 ring-white/40">
+                      {(b.sitterId?.name || "S")[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-white font-bold">{b.sitterId?.name || "Sitter"}</p>
+                      <p className="text-blue-100 text-xs">
+                        {b.service} • {b.walk ? `${b.walk.date} ${b.walk.from}:00–${b.walk.to}:00` : b.date || "—"}
+                      </p>
+                    </div>
+                  </div>
+                  {/* STATUS PILL */}
+                  {{
+                    pending:    <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">⏳ Pending</span>,
+                    confirmed:  <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">✅ Confirmed</span>,
+                    on_the_way: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">🚗 On The Way</span>,
+                    arrived:    <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200 animate-pulse">📍 Arrived!</span>,
+                    completed:  <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">🎉 Completed</span>,
+                    rejected:   <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">✕ Rejected</span>,
+                  }[b.status]}
+                </div>
+                {b.status !== "completed" && b.status !== "cancelled" && (
+  <button
+    onClick={() => cancelBooking(
+      b._id,
+      b.payment?.amount || b.servicePrice,
+      b.status,
+      b.service,
+      b.walk?.date || b.boarding?.startDate || b.date
+    )}
+    className="w-full mt-2 px-4 py-2 bg-red-50 border border-red-300 text-red-700 font-semibold rounded-xl hover:bg-red-100 transition-all"
+  >
+    Cancel Booking
+  </button>
+)}
+                <div className="p-5 space-y-4">
+
+                  {/* SERVICE + PRICE */}
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">
+                        {b.service === "Walk" ? "🚶" : b.service === "Boarding" ? "🏠" : "🐾"}
+                      </span>
+                      <p className="font-bold text-gray-900">{b.service}</p>
+                    </div>
+                    {amount > 0 && (
+                      <p className="text-2xl font-bold text-blue-600">₹{amount}</p>
+                    )}
+                  </div>
+
+                  {/* ══════════════════════════════════════
+                      📞 SITTER PHONE
+                      Backend sends phone ONLY for:
+                      confirmed, on_the_way, arrived
+                      Hidden for: pending, rejected, completed
+                  ══════════════════════════════════════ */}
+                  {["confirmed", "on_the_way", "arrived"].includes(b.status) && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-2xl">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">📞 Sitter Contact</p>
+                      {b.sitterId?.phone ? (
+                        <a
+                          href={`tel:${b.sitterId.phone}`}
+                          className="flex items-center justify-between w-full px-4 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 hover:scale-105 active:scale-95 transition-all shadow-md"
+                        >
+                          <span>📞 Call Sitter</span>
+                          <span className="text-lg font-bold tracking-widest">{b.sitterId.phone}</span>
+                        </a>
+                      ) : (
+                        <p className="text-sm text-amber-600 font-medium">
+                          ⚠️ Sitter hasn't added their phone number yet
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* STATUS MESSAGES */}
+                  {b.status === "pending" && (
+                    <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl">
+                      <span className="text-3xl">⏳</span>
+                      <div>
+                        <p className="font-bold text-yellow-800">Waiting for sitter to confirm...</p>
+                        <p className="text-xs text-yellow-600 mt-0.5">This updates automatically — no refresh needed</p>
                       </div>
-                      
-                      {/* Status Badge */}
-                      <span
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-md ${
-                          b.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                            : b.status === "confirmed"
-                            ? "bg-green-100 text-green-800 border border-green-200"
-                            : "bg-red-100 text-red-800 border border-red-200"
+                    </div>
+                  )}
+
+                  {b.status === "on_the_way" && (
+                    <div className="flex items-center gap-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl">
+                      <span className="text-3xl animate-bounce">🚗</span>
+                      <p className="font-bold text-blue-800">Sitter is on the way to you!</p>
+                    </div>
+                  )}
+
+                  {b.status === "arrived" && (
+                    <div className="flex items-center gap-3 p-4 bg-orange-50 border-2 border-orange-300 rounded-2xl">
+                      <span className="text-3xl animate-bounce">📍</span>
+                      <p className="font-bold text-orange-800">Your sitter has arrived!</p>
+                    </div>
+                  )}
+
+                  {b.status === "rejected" && (
+                    <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl">
+                      <span className="text-3xl">❌</span>
+                      <p className="font-bold text-red-800">Booking rejected. Please try another sitter.</p>
+                    </div>
+                  )}
+
+                  {b.status === "completed" && (
+                    <div className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-200 rounded-2xl">
+                      <span className="text-3xl">🎉</span>
+                      <p className="font-bold text-indigo-800">Service Completed! Hope your pet had a great time.</p>
+                    </div>
+                  )}
+
+                  {/* ══════════════════════════════════════
+                      🐾 TRACK WALK LIVE
+                      ✅ NO PAYMENT GATE — shows as soon as
+                      sitter starts walk, regardless of payment
+                  ══════════════════════════════════════ */}
+                  {b.service === "Walk" && ["arrived"].includes(b.status) && (
+                    <Link to={`/track-walk/${b._id}`}>
+                      <button className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2">
+                        📍 Track Walk Live
+                      </button>
+                    </Link>
+                  )}
+
+                  {/* ══════════════════════════════════════
+                      💳 PAYMENT SECTION
+                      ✅ Flexible — pet owner can pay:
+                      - After confirmed (optional, early)
+                      - After sitter arrives
+                      - After service is COMPLETED
+                      Nothing is blocked by payment status
+                  ══════════════════════════════════════ */}
+                  {!isPaid && ["confirmed", "on_the_way", "arrived", "completed"].includes(b.status) && (
+                    <div className={`p-4 rounded-2xl space-y-3 border-2 ${
+                      b.status === "completed"
+                        ? "bg-indigo-50 border-indigo-300"
+                        : b.status === "arrived"
+                        ? "bg-orange-50 border-orange-400"
+                        : "bg-blue-50 border-blue-200"
+                    }`}>
+                      <div className="flex items-center gap-2">
+                        {b.status === "confirmed"  && <p className="font-semibold text-green-800 text-sm">✅ Confirmed — pay when you're ready</p>}
+                        {b.status === "on_the_way" && <p className="font-semibold text-blue-800 text-sm">🚗 Sitter coming — pay anytime</p>}
+                        {b.status === "arrived"    && <p className="font-bold text-orange-800">📍 Sitter arrived — pay to begin service</p>}
+                        {b.status === "completed"  && <p className="font-bold text-indigo-800">🎉 Service done! Please pay the sitter</p>}
+                      </div>
+
+                      <div className="flex items-center justify-between px-1">
+                        <span className="text-sm font-semibold text-gray-600">Amount:</span>
+                        <span className={`text-2xl font-bold ${
+                          b.status === "completed" ? "text-indigo-600"
+                          : b.status === "arrived" ? "text-orange-600"
+                          : "text-blue-600"
+                        }`}>₹{amount}</span>
+                      </div>
+
+                      <button
+                        onClick={() => handlePayment(b, amount)}
+                        disabled={paymentLoading === b._id}
+                        className={`w-full py-4 rounded-2xl font-bold text-white text-lg transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
+                          b.status === "completed"
+                            ? "bg-gradient-to-r from-indigo-500 to-purple-600"
+                            : b.status === "arrived"
+                            ? "bg-gradient-to-r from-orange-500 to-red-500"
+                            : "bg-gradient-to-r from-blue-500 to-indigo-600"
                         }`}
                       >
-                        {b.status === "pending" && <Icons.Clock className="w-4 h-4" />}
-                        {b.status === "confirmed" && <Icons.Check className="w-4 h-4" />}
-                        {b.status === "rejected" && <Icons.Alert className="w-4 h-4" />}
-                        <span className="capitalize">{b.status}</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="p-4 sm:p-6 space-y-4">
-                    {/* Service Type */}
-                    <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                        {b.service === "Walk" ? (
-                          <Icons.Walk className="w-5 h-5 text-blue-600" />
-                        ) : b.service === "Boarding" ? (
-                          <Icons.Home className="w-5 h-5 text-blue-600" />
+                        {paymentLoading === b._id ? (
+                          <>
+                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Processing...
+                          </>
                         ) : (
-                          <Icons.Heart className="w-5 h-5 text-blue-600" />
+                          <>💳 Pay Now — ₹{amount}</>
                         )}
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide">Service Type</p>
-                        <p className="text-base sm:text-lg font-semibold text-gray-900">{b.service}</p>
-                      </div>
+                      </button>
+                      <p className="text-xs text-center text-gray-400">
+                        Pay before, during, or after service — your choice
+                      </p>
                     </div>
+                  )}
 
-                    {/* Track Walk Button */}
-                    {b.service === "Walk" && b.status === "confirmed" && b.payment?.paid && (
-                      <div className="animate-fadeIn">
-                        <Link to={`/track-walk/${b._id}`}>
-                          <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg">
-                            <Icons.Location className="w-5 h-5" />
-                            Track Walk Live
-                          </button>
-                        </Link>
-                      </div>
-                    )}
-
-                    {/* Payment Section */}
-                    <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 space-y-3">
-                      {b.payment?.paid ? (
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <Icons.Check className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-600">Payment Status</p>
-                            <p className="text-base font-bold text-green-600">Payment Completed ✓</p>
-                          </div>
-                        </div>
-                      ) : (b.status === "confirmed" || b.status === "completed") ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Icons.Money className="w-5 h-5 text-gray-600" />
-                              <span className="text-sm font-medium text-gray-700">Amount to Pay:</span>
-                            </div>
-                            <span className="text-xl sm:text-2xl font-bold text-blue-600">
-                              ₹{b.servicePrice || (b.sitterId?.price ? parseInt(b.sitterId.price) : "N/A")}
-                            </span>
-                          </div>
-                          <button
-                            onClick={async () => {
-                              try {
-                                setPaymentLoading(b._id);
-                                const sitterPrice = b.sitterId?.price ? parseInt(b.sitterId.price.replace(/[^\d]/g, "")) : 0;
-                                const amount = Number(b.servicePrice || sitterPrice || 0);
-                                if (amount <= 0) {
-                                  alert("Invalid amount. Sitter price not set. Please contact the sitter.");
-                                  return;
-                                }
-                                console.log("Starting payment for booking:", b._id, "Amount:", amount);
-                                await openRazorpay({
-                                  amount,
-                                  bookingId: b._id,
-                                });
-                                await load(); // Reload bookings after payment
-                              } catch (error) {
-                                console.error("Payment error:", error);
-                                alert("Payment error: " + error.message);
-                              } finally {
-                                setPaymentLoading(null);
-                              }
-                            }}
-                            disabled={paymentLoading === b._id}
-                            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                          >
-                            {paymentLoading === b._id ? (
-                              <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                Processing Payment...
-                              </>
-                            ) : (
-                              <>
-                                <Icons.Money className="w-5 h-5" />
-                                Pay Now - Secure Payment
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      ) : null}
+                  {/* PAYMENT DONE STRIP */}
+                  {isPaid && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                      <span className="text-green-600">✅</span>
+                      <p className="text-sm font-bold text-green-800">
+                        Payment Complete — ₹{b.payment.amount}
+                      </p>
                     </div>
+                  )}
 
-                    {/* Pet Details */}
-                    {b.pet && (
-                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Icons.Pet className="w-5 h-5 text-purple-600" />
-                          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Pet Information</h4>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Icons.Heart className="w-4 h-4 text-pink-500" />
-                            <span className="text-gray-600">Name:</span>
-                            <span className="font-semibold text-gray-900">{b.pet.name}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icons.Info className="w-4 h-4 text-purple-500" />
-                            <span className="text-gray-600">Type:</span>
-                            <span className="font-semibold text-gray-900">{b.pet.type}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icons.Clock className="w-4 h-4 text-blue-500" />
-                            <span className="text-gray-600">Age:</span>
-                            <span className="font-semibold text-gray-900">{b.pet.age}</span>
-                          </div>
-                        </div>
-                        {b.pet.notes && (
-                          <div className="mt-3 p-3 bg-white bg-opacity-70 rounded-lg">
-                            <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                              <Icons.Info className="w-3 h-3" />
-                              Special Notes:
-                            </p>
-                            <p className="text-sm text-gray-700">{b.pet.notes}</p>
-                          </div>
-                        )}
+                  {/* PET INFO */}
+                  {b.pet && (
+                    <div className="p-4 bg-purple-50 border border-purple-100 rounded-2xl text-sm">
+                      <p className="font-bold text-gray-900 mb-2">🐾 Pet Details</p>
+                      <div className="grid grid-cols-2 gap-2 text-gray-700">
+                        <span>Name: <strong>{b.pet.name}</strong></span>
+                        <span>Type: <strong>{b.pet.type}</strong></span>
+                        <span>Age: <strong>{b.pet.age}</strong></span>
                       </div>
-                    )}
+                      {b.pet.notes && (
+                        <p className="text-gray-600 mt-2 text-xs">📝 {b.pet.notes}</p>
+                      )}
+                    </div>
+                  )}
 
-                    {/* Boarding Details */}
-                    {b.boarding && (
-                      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-4 space-y-3">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Icons.Home className="w-5 h-5 text-orange-600" />
-                          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Boarding Details</h4>
+                  {/* BOARDING DETAILS */}
+                  {b.boarding && (
+                    <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl text-sm space-y-1">
+                      <p className="font-bold text-gray-900 mb-2">🏠 Boarding Details</p>
+                      <p>📅 {b.boarding.startDate} → {b.boarding.endDate}</p>
+                      {b.boarding.vetNumber && (
+                        <p>🏥 Vet: <a href={`tel:${b.boarding.vetNumber}`} className="text-blue-600 font-semibold">{b.boarding.vetNumber}</a></p>
+                      )}
+                      {b.boarding.medicine && <p>💊 {b.boarding.medicine}</p>}
+                      {b.boarding.emergencyNotes && (
+                        <div className="mt-2 p-2 bg-white border-l-4 border-orange-400 rounded">
+                          <p className="text-xs font-bold text-gray-500">⚠️ Emergency Notes</p>
+                          <p className="text-xs text-gray-700 mt-0.5">{b.boarding.emergencyNotes}</p>
                         </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Icons.Calendar className="w-4 h-4 text-orange-500" />
-                            <span className="text-gray-600">Duration:</span>
-                            <span className="font-semibold text-gray-900">
-                              {b.boarding.startDate} → {b.boarding.endDate}
-                            </span>
-                          </div>
-                          {b.boarding.vetNumber && (
-                            <div className="flex items-center gap-2">
-                              <Icons.Medical className="w-4 h-4 text-red-500" />
-                              <span className="text-gray-600">Vet Contact:</span>
-                              <a href={`tel:${b.boarding.vetNumber}`} className="font-semibold text-blue-600 hover:underline">
-                                {b.boarding.vetNumber}
-                              </a>
-                            </div>
-                          )}
-                          {b.boarding.medicine && (
-                            <div className="flex items-start gap-2">
-                              <Icons.Medical className="w-4 h-4 text-green-500 mt-0.5" />
-                              <div>
-                                <span className="text-gray-600">Medicine:</span>
-                                <p className="font-semibold text-gray-900">{b.boarding.medicine}</p>
-                              </div>
-                            </div>
-                          )}
-                          {b.boarding.emergencyNotes && (
-                            <div className="mt-3 p-3 bg-white bg-opacity-70 rounded-lg border-l-4 border-orange-400">
-                              <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
-                                <Icons.Alert className="w-3 h-3" />
-                                Emergency Notes:
-                              </p>
-                              <p className="text-sm text-gray-700 font-medium">{b.boarding.emergencyNotes}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-{/* Contact Sitter Section */}
-{b.status === "confirmed" && b.payment?.paid && b.sitterId?.phone && (
-  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-4 border border-yellow-200">
-    <div className="flex items-center gap-2 mb-3">
-      <Icons.Info className="w-5 h-5 text-orange-600" />
-      <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-        Contact Sitter
-      </h4>
-    </div>
+                      )}
+                    </div>
+                  )}
 
-    <a
-      href={`tel:${b.sitterId.phone}`}
-      className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-all duration-200 hover:scale-105 shadow-md"
-    >
-      📞 Call Sitter
-    </a>
+                  {/* LEAVE REVIEW */}
+                  {!b.reviewed && b.status === "completed" && (
+                    <button
+                      onClick={() => navigate(`/review/${b._id}`, {
+                        state: { sitterId: b.sitterId._id, sitterName: b.sitterId.name }
+                      })}
+                      className="w-full py-3 rounded-2xl font-bold text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      ⭐ Leave a Review
+                    </button>
+                  )}
 
-    <p className="text-xs text-gray-600 mt-3">
-      For your safety, please keep all payments and booking changes within Petroo.
-      Services arranged outside the platform are not covered under our support policy.
-    </p>
-  </div>
-)}
-                    {/* Review Section */}
-                    {!b.reviewed && b.status === "confirmed" && (
-                      <div className="pt-4 border-t border-gray-100">
-                        <button
-                          onClick={() =>
-                            navigate(`/review/${b._id}`, {
-                              state: {
-                                sitterId: b.sitterId._id,
-                                sitterName: b.sitterId.name,
-                              },
-                            })
-                          }
-                          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 font-medium rounded-xl hover:bg-blue-50 transition-all duration-200 hover:scale-105"
-                        >
-                          <Icons.Star className="w-5 h-5" />
-                          Leave a Review
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+            );
+          })}
+        </div>
 
-        {/* SEO-Friendly Footer Section */}
-        <div className="mt-12 sm:mt-16 max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-                Why Choose Our <span className="text-blue-600">Pet Care Platform</span>?
-              </h2>
-              <p className="text-gray-600">
-                India's most trusted platform for pet sitting, walking, and boarding services
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-100 rounded-full mb-3">
-                  <Icons.Shield className="w-7 h-7 text-blue-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Verified Sitters</h3>
-                <p className="text-sm text-gray-600">All sitters are background-checked and verified professionals</p>
+        {/* HOW IT WORKS FOOTER */}
+        <div className="mt-10 bg-white rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">🐾 How It Works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            {[
+              { icon: "✅", title: "Book a Sitter",     desc: "Choose your sitter and book instantly" },
+              { icon: "🚗", title: "Sitter Travels",    desc: "Sitter comes to you — track them live" },
+              { icon: "💳", title: "Flexible Payment",  desc: "Pay before, during, or after service" },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="p-3 bg-gray-50 rounded-2xl">
+                <p className="text-2xl mb-1">{icon}</p>
+                <p className="font-bold text-gray-900">{title}</p>
+                <p className="text-gray-500 text-xs mt-1">{desc}</p>
               </div>
-              
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 rounded-full mb-3">
-                  <Icons.Location className="w-7 h-7 text-green-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Real-Time Tracking</h3>
-                <p className="text-sm text-gray-600">Track your pet's walk or care session live on the map</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-purple-100 rounded-full mb-3">
-                  <Icons.Money className="w-7 h-7 text-purple-600" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Secure Payments</h3>
-                <p className="text-sm text-gray-600">Safe and encrypted payment processing for peace of mind</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Custom Animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
