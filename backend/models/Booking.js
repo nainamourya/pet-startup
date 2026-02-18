@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Phone } from 'lucide-react';
+
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -69,25 +69,25 @@ const bookingSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
-      amount: { type: Number },   
+      amount: { type: Number },
       razorpayOrderId: { type: String },
       razorpayPaymentId: { type: String },
       paidAt: { type: Date },
     },
     refunded: { type: Boolean, default: false },
-refundedAt: Date,
-cancelledAt: Date,
+    refundedAt: Date,
+    cancelledAt: Date,
 
-refundAmount: {
-  type: Number,
-  default: 0,
-},
+    refundAmount: {
+      type: Number,
+      default: 0,
+    },
 
 
-},
-  
+  },
 
-  
+
+
   { timestamps: true }
 );
 
