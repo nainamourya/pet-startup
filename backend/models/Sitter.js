@@ -5,17 +5,17 @@ const sitterSchema = new mongoose.Schema(
     // 👤 Basic Information
     name: {
       type: String,
-      required: true,
+      default: "",
       trim: true
     },
     city: {
       type: String,
-      required: true,
+      default: "",
       trim: true
     },
     experience: {
       type: String,
-      required: true
+      default: ""
     },
     services: {
       type: [String],
@@ -37,7 +37,7 @@ const sitterSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: true,
+      default: "",
     },
     location: {
       type: {

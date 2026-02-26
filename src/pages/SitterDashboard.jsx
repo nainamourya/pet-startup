@@ -279,12 +279,17 @@ export default function SitterDashboard() {
                 <div className="space-y-4">
                   {/* ✅ CHANGED: added Phone Number field — was missing from original */}
                   {[
-                    ["Full Name",          "name",       "text"],
-                    ["Phone Number",       "phone",      "tel"],
-                    ["City",               "city",       "text"],
-                    ["Experience",         "experience", "text"],
-                    ["Price per Hour (₹)", "price",      "text"],
-                  ].map(([label, key, type]) => (
+  ["Full Name", "name", "text"],
+  ["Phone Number", "phone", "tel"],
+  ["City", "city", "text"],
+  ["Experience", "experience", "text"],
+
+  ["Daycare Price (₹)", "daycare", "number"],
+  ["30 Min Walk Price (₹)", "walking30", "number"],
+  ["60 Min Walk Price (₹)", "walking60", "number"],
+  ["Boarding Price (₹)", "boarding", "number"],
+  ["Hourly Price (₹)", "hourly", "number"],
+].map(([label, key, type]) => (
                     <div key={key}>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         {label}
@@ -303,7 +308,24 @@ export default function SitterDashboard() {
                         }`}
                         value={profile[key] || ""}
                         placeholder={key === "phone" ? "e.g. 9876543210" : ""}
-                        onChange={(e) => setProfile({ ...profile, [key]: e.target.value })}
+                        onChange={(e) => {
+                          const value = type === "number" ? Number(e.target.value) : e.target.value;
+                        
+                          if (["daycare", "walking30", "walking60", "boarding", "hourly"].includes(key)) {
+                            setProfile({
+                              ...profile,
+                              price: {
+                                ...profile.price,
+                                [key]: value,
+                              },
+                            });
+                          } else {
+                            setProfile({
+                              ...profile,
+                              [key]: value,
+                            });
+                          }
+                        }}
                       />
                     </div>
                   ))}
@@ -320,18 +342,27 @@ export default function SitterDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* ✅ CHANGED: added Phone to profile view with red warning if missing */}
                   {[
-                    { l: "Name",        k: "name"       },
-                    { l: "Phone",       k: "phone"      },
-                    { l: "City",        k: "city"       },
-                    { l: "Experience",  k: "experience" },
-                    { l: "Hourly Rate", k: "price", pfx: "₹" },
-                  ].map(({ l, k, pfx = "" }) => (
+  { l: "Name",        k: "name" },
+  { l: "Phone",       k: "phone" },
+  { l: "City",        k: "city" },
+  { l: "Experience",  k: "experience" },
+
+  { l: "Daycare",     k: "daycare",   pfx: "₹" },
+  { l: "30 Min Walk", k: "walking30", pfx: "₹" },
+  { l: "60 Min Walk", k: "walking60", pfx: "₹" },
+  { l: "Boarding",    k: "boarding",  pfx: "₹" },
+  { l: "Hourly Rate", k: "hourly",    pfx: "₹" },
+].map(({ l, k, pfx = "" }) => (
                     <div key={k} className={`p-5 rounded-2xl border ${k === "phone" && !profile[k] ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{l}</p>
                       {k === "phone" && !profile[k] ? (
                         <p className="text-base font-bold text-red-600 mt-1">⚠️ Not set — click Edit Profile</p>
                       ) : (
-                        <p className="text-lg font-bold text-gray-900 mt-1">{pfx}{profile[k]}</p>
+                        <p className="text-lg font-bold text-gray-900 mt-1">
+                        {["daycare", "walking30", "walking60", "boarding", "hourly"].includes(k)
+                          ? `${pfx}${profile.price?.[k] || 0}`
+                          : `${pfx || ""}${profile[k] || ""}`}
+                      </p>
                       )}
                     </div>
                   ))}

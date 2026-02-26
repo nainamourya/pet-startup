@@ -208,13 +208,13 @@ export default function MyBookings() {
                   {["confirmed", "on_the_way", "arrived"].includes(b.status) && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-2xl">
                       <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">📞 Sitter Contact</p>
-                      {b.sitterId?.phone ? (
+                      {b?.phone ? (
                         <a
-                          href={`tel:${b.sitterId.phone}`}
+                          href={`tel:${b.phone}`}
                           className="flex items-center justify-between w-full px-4 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 hover:scale-105 active:scale-95 transition-all shadow-md"
                         >
                           <span>📞 Call Sitter</span>
-                          <span className="text-lg font-bold tracking-widest">{b.sitterId.phone}</span>
+                          <span className="text-lg font-bold tracking-widest">{b.phone}</span>
                         </a>
                       ) : (
                         <p className="text-sm text-amber-600 font-medium">
