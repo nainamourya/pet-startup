@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Search, MapPin, Calendar, PawPrint, Star,
-  Loader2, Navigation, Target
+  Loader2, Navigation,Locate, Target
 } from "lucide-react";
 import API_BASE_URL from "../config/api";
 
@@ -268,7 +268,7 @@ export default function FindSitter() {
           </motion.div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Find the Perfect <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sitter</span>
+          Find Trusted Pet Boarding & Cat Sitters in Mumbai <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Sitter</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
             Trusted sitters, calm care, zero stress. Book verified pet care professionals near you.
@@ -377,7 +377,7 @@ export default function FindSitter() {
                   {locationLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <Navigation className="w-5 h-5" />
+                    <Locate  className="w-5 h-5" />
                   )}
                   <span className="hidden sm:inline">Use My Location</span>
                 </button>
