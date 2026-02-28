@@ -192,23 +192,17 @@ export default function About() {
                 Our Story: Born from Love for Pets
               </h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
-                <p>
-                  PetSitter was founded in 2022 when our founder, Priya Sharma, struggled to find 
-                  reliable care for her Golden Retriever, Bruno, while traveling for work. As a 
-                  veterinarian, she understood that pets need more than just basic care—they need 
-                  genuine love and attention.
-                </p>
-                <p>
-                  What started as a small network of trusted pet lovers in Mumbai has grown into 
-                  India's largest community of verified pet sitters. Today, we serve over 10,000 
-                  pet families across 50+ cities, ensuring that no pet parent has to worry about 
-                  their furry friend's well-being.
-                </p>
-                <p>
-                  We believe every pet deserves exceptional care, and every sitter deserves fair 
-                  compensation and recognition for their passion. That's why we've built a platform 
-                  that prioritizes safety, transparency, and mutual trust.
-                </p>
+              <p>
+  Petroo was founded in 2025 with a simple mission — to make finding trusted pet sitters in Mumbai safe, transparent, and stress-free. Like many pet parents, our founder experienced the anxiety of leaving a beloved pet in someone else’s care and realized how difficult it was to find verified, reliable sitters.
+</p>
+
+<p>
+  What began as a focused effort to connect pet parents with responsible caregivers in Mumbai has grown into a trusted pet care platform built on safety, real reviews, and secure bookings. Every sitter on Petroo is carefully reviewed to ensure pets receive genuine attention and compassionate care.
+</p>
+
+<p>
+  At Petroo, we believe every pet deserves more than basic supervision — they deserve love, patience, and protection. And every sitter deserves fair opportunities and recognition for the care they provide. That’s why we are building a platform rooted in trust, accountability, and community.
+</p>
               </div>
 
               <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
@@ -216,7 +210,7 @@ export default function About() {
                   "Our mission is simple: Make quality pet care accessible, affordable, and stress-free 
                   for every pet parent in India."
                 </p>
-                <p className="text-sm text-blue-700 mt-2">— Priya Sharma, Founder & CEO</p>
+                <p className="text-sm text-blue-700 mt-2">— Naina Mourya, Founder & CEO</p>
               </div>
             </motion.div>
 
