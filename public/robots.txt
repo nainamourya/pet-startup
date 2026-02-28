@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Block private routes
+Disallow: /dashboard
+Disallow: /booking
+Disallow: /login
+Disallow: /register
+
+Sitemap: https://www.petroo.in/sitemap.xml

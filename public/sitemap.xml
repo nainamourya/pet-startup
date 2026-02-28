@@ -6,59 +6,67 @@
   xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 
   <!-- Main pages -->
+  <!-- Homepage -->
   <url>
     <loc>https://www.petroo.in/</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
+    <loc>https://www.petroo.in/find</loc>
+    <lastmod>2026-02-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
     <loc>https://www.petroo.in/about</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://www.petroo.in/services</loc>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.petroo.in/services/cat-boarding</loc>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.petroo.in/services/pet-daycare</loc>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.petroo.in/find-sitters</loc>
+    <loc>https://www.petroo.in/become</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://www.petroo.in/booking</loc>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://www.petroo.in/blog</loc>
-    <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://www.petroo.in/contact</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://www.petroo.in/privacy-policy</loc>
+    <loc>https://www.petroo.in/faq</loc>
+    <lastmod>2026-02-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <url>
+    <loc>https://www.petroo.in/privacy</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://www.petroo.in/terms-of-service</loc>
+    <loc>https://www.petroo.in/terms</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
+  <url>
+    <loc>https://www.petroo.in/refund</loc>
+    <lastmod>2026-02-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>
