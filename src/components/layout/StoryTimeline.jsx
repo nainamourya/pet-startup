@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { PawPrint, Heart, Lightbulb, Users, TrendingUp, Award, Sparkles, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -9,7 +10,7 @@ const TIMELINE = [
   {
     year: "2023",
     title: "The Idea Was Born",
-    text: "PetSitter began with a simple frustration — finding reliable, trustworthy pet care shouldn't feel uncertain or risky.",
+    text: "petroo began with a simple frustration — finding reliable, trustworthy pet care shouldn't feel uncertain or risky.",
     icon: Lightbulb,
     color: "from-yellow-500 to-orange-500",
     bgColor: "from-yellow-50 to-orange-50",
@@ -17,7 +18,7 @@ const TIMELINE = [
   {
     year: "2024",
     title: "Building With Purpose",
-    text: "We designed PetSitter around trust, verification, and thoughtful UX — not speed or shortcuts.",
+    text: "We designed petroo around trust, verification, and thoughtful UX — not speed or shortcuts.",
     icon: Users,
     color: "from-blue-500 to-indigo-500",
     bgColor: "from-blue-50 to-indigo-50",
@@ -33,7 +34,7 @@ const TIMELINE = [
   {
     year: "Today",
     title: "Care Without Compromise",
-    text: "PetSitter continues to evolve with one goal: making pet care human, calm, and dependable.",
+    text: "petroo continues to evolve with one goal: making pet care human, calm, and dependable.",
     icon: Award,
     color: "from-purple-500 to-pink-500",
     bgColor: "from-purple-50 to-pink-50",
@@ -118,7 +119,7 @@ export default function StoryTimeline() {
           </h2>
           
           <p className="text-xl text-gray-600 leading-relaxed">
-            How PetSitter grew from an idea into India's most trusted pet care platform.
+            How petroo grew from an idea into India's most trusted pet care platform.
           </p>
         </div>
 
@@ -213,14 +214,14 @@ export default function StoryTimeline() {
             </h3>
             
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of pet parents and sitters who trust PetSitter for safe, reliable pet care.
+              Join thousands of pet parents and sitters who trust petroo for safe, reliable pet care.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
+              <button onClick={() => window.location.href = "/find"} className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
                 Find a Sitter
               </button>
-              <button className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105">
+              <button onClick={() => window.location.href = "/become"} className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105">
                 Become a Sitter
               </button>
             </div>

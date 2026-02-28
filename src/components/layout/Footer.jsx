@@ -48,11 +48,18 @@ export default function Footer() {
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Heart className="w-6 h-6 text-white" />
-                </div>
+              
                 <h3 className="text-2xl font-bold text-white">
-                  PetSitter
+                <Link
+  to="/"
+  className="flex items-center group"
+>
+  <img
+    src="/petroo-footer-logo.png"
+    alt="Logo"
+    className="h-12 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+  />
+</Link>
                 </h3>
               </div>
             </Link>

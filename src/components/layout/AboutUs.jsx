@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Heart, ShieldCheck, Users, Award, Target, Zap, Star, TrendingUp, CheckCircle } from "lucide-react";
-
+import { Link } from "react-router-dom";
 gsap.registerPlugin(ScrollTrigger);
 
 export default function AboutUs() {
@@ -58,15 +58,15 @@ export default function AboutUs() {
           </motion.div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight mb-6">
-            Built on <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Trust</span>
-            <br />
-            Driven by <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Care</span>
-          </h1>
+  Find Trusted Pet Sitters & Cat Boarding Services in Mumbai
+  <br />
+  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+    with Petroo
+  </span>
+</h1>
 
           <p className="mt-8 text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
-            PetSitter exists to help pet parents find sitters they can genuinely
-            rely on — without stress, uncertainty, or compromise. Every tail wag,
-            every purr, every happy pet is our success story.
+          Petroo exists to help pet parents in Mumbai find trusted, verified pet sitters they can genuinely rely on — without stress, uncertainty, or compromise. Whether you need cat boarding, pet daycare, home pet sitting, or short-term pet care, Petroo connects you with experienced sitters who treat your pets like family. Every tail wag, every purr, and every happy pet is our success story.
           </p>
         </div>
 
@@ -84,13 +84,13 @@ export default function AboutUs() {
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
               Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Story</span>
             </h2>
-            <p className="text-lg text-gray-600">How PetSitter came to life</p>
+            <p className="text-lg text-gray-600">How petroo came to life</p>
           </div>
 
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100">
             <div className="space-y-6 text-lg text-gray-700 leading-relaxed">
               <p>
-                <span className="text-2xl font-bold text-blue-600">It started with a simple problem:</span> Finding reliable, trustworthy pet care shouldn't be this hard.
+                <span className="text-2xl font-bold text-blue-600">It started with a simple problem:</span>  Why is finding trusted pet sitters and cat boarding in Mumbai so difficult?
               </p>
               
               <p>
@@ -102,7 +102,7 @@ export default function AboutUs() {
               </p>
               
               <p className="text-xl font-semibold text-gray-900">
-                That's why we built PetSitter — to turn anxiety into peace of mind, and strangers into trusted caregivers.
+                That's why we built Petroo — to turn anxiety into peace of mind, and strangers into trusted caregivers.
               </p>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function AboutUs() {
             <ValueCard
               icon={<Users />}
               title="Community Driven"
-              text="PetSitter is built around trust, shared values, and long-term relationships. We're not just a platform — we're a family of pet lovers."
+              text="petroo is built around trust, shared values, and long-term relationships. We're not just a platform — we're a family of pet lovers."
               gradient="from-purple-500 to-pink-500"
             />
           </div>
@@ -183,7 +183,7 @@ export default function AboutUs() {
         <div className="reveal">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
-              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">PetSitter?</span>
+              Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Petroo?</span>
             </h2>
             <p className="text-lg text-gray-600">What makes us different</p>
           </div>
@@ -275,12 +275,16 @@ export default function AboutUs() {
             Experience the peace of mind that comes with finding the perfect sitter.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg">
+          <Link to="/find" className="inline-block">
+          <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg">
               Find a Sitter
             </button>
-            <button className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105">
-              Become a Sitter
-            </button>
+          </Link>
+            <Link to="/become" className="inline-block">
+              <button className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105 shadow-lg">
+                Become a Sitter
+              </button>
+            </Link>
           </div>
         </motion.div>
 

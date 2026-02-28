@@ -4,6 +4,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Star, Quote, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
+
 gsap.registerPlugin(ScrollTrigger);
 
 const TESTIMONIALS = [
@@ -11,7 +12,7 @@ const TESTIMONIALS = [
     name: "Ananya Sharma",
     role: "Pet Parent",
     location: "Mumbai",
-    text: "I was always anxious leaving my dog with someone new. PetSitter completely changed that. The sitter updates, reviews, and care were beyond expectations.",
+    text: "I was always anxious leaving my dog with someone new. petroo completely changed that. The sitter updates, reviews, and care were beyond expectations.",
     rating: 5,
     image: "AS",
     gradient: "from-blue-500 to-indigo-500",
@@ -19,7 +20,7 @@ const TESTIMONIALS = [
   {
     name: "Rahul Mehta",
     role: "Pet Parent",
-    location: "Bengaluru",
+    location: "Mumbai",
     text: "For the first time, I felt calm while traveling. Knowing my pet was in safe hands made all the difference.",
     rating: 5,
     image: "RM",
@@ -28,8 +29,8 @@ const TESTIMONIALS = [
   {
     name: "Sneha Kapoor",
     role: "Verified Sitter",
-    location: "Delhi",
-    text: "PetSitter respects sitters as much as pet parents. The platform feels thoughtful, transparent, and genuinely built for care.",
+    location: "Mumbai",
+    text: "petroo respects sitters as much as pet parents. The platform feels thoughtful, transparent, and genuinely built for care.",
     rating: 5,
     image: "SK",
     gradient: "from-purple-500 to-pink-500",
@@ -37,7 +38,7 @@ const TESTIMONIALS = [
   {
     name: "Arjun Patel",
     role: "Pet Parent",
-    location: "Pune",
+    location: "Mumbai",
     text: "The real-time updates and GPS tracking gave me complete peace of mind. I could see exactly where my dog was during walks!",
     rating: 5,
     image: "AP",
@@ -46,8 +47,8 @@ const TESTIMONIALS = [
   {
     name: "Priya Singh",
     role: "Verified Sitter",
-    location: "Hyderabad",
-    text: "Being part of the PetSitter community has been amazing. The verification process made me feel valued and the support is incredible.",
+    location: "Mumbai",
+    text: "Being part of the petroo community has been amazing. The verification process made me feel valued and the support is incredible.",
     rating: 5,
     image: "PS",
     gradient: "from-pink-500 to-rose-500",
@@ -167,7 +168,7 @@ export default function Testimonials() {
           </h2>
           
           <p className="text-xl text-gray-600 leading-relaxed">
-            Honest experiences from pet parents and sitters who trust PetSitter.
+            Honest experiences from pet parents and sitters who trust petroo.
           </p>
         </div>
 

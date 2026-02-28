@@ -28,6 +28,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
 import TermsOfService from "./pages/TermsOfService.jsx";
 import Contact from "./pages/Contact.jsx";
 import FAQ from "./pages/FAQ.jsx";
+import About from "./pages/About.jsx";
 
 export default function App() {
   return (
@@ -92,6 +93,7 @@ export default function App() {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
+            <Route path="/about" element={<About />} />
 
 
             <Route path="/sitter/:id" element={<FindSitterProfile />} />

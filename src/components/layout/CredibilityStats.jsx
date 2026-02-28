@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Users, ShieldCheck, Star, PawPrint, TrendingUp, Heart, Award, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -151,7 +152,7 @@ export default function CredibilityStats() {
           </h2>
           
           <p className="text-xl text-gray-600 leading-relaxed">
-            Real people. Real care. Real peace of mind. Join thousands who trust PetSitter.
+            Real people. Real care. Real peace of mind. Join thousands who trust petroo.
           </p>
         </div>
 
@@ -237,12 +238,16 @@ export default function CredibilityStats() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
+            <Link to="/find" className="inline-block">
+            <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl">
                 Find Your Sitter
               </button>
-              <button className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105">
+            </Link>
+             <Link to="/about" className="inline-block">
+             <button className="px-8 py-4 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-bold hover:border-blue-600 hover:text-blue-600 transition-all duration-200 hover:scale-105">
                 Learn More
               </button>
+             </Link>
             </div>
           </div>
         </div>
