@@ -439,17 +439,13 @@ export default function WithdrawalSection({ profile }) {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Withdraw Money</h2>
                 <button
-                  onClick={() => setShowWithdrawModal(true)}
-                  disabled={balance.availableBalance < balance.limits.minWithdrawal}
-                  className="px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale hover:scale-105 disabled:hover:scale-100"
-                  style={{
-                    backgroundColor: balance.availableBalance < balance.limits.minWithdrawal
-                      ? '#d1d5db' // gray color when disabled
-                      : brand,
-                    color: 'white'
-                  }}
+                  onClick={() => setShowWithdrawModal(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                  aria-label="Close"
                 >
-                  Withdraw Money
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
 

@@ -159,7 +159,7 @@ export default function SitterDashboard() {
       city: profile.city || "",
       experience: profile.experience || "",
       price: {
-        daycare: profile.price?.daycare || "",
+        dayCare: profile.price?.dayCare || "",
         walking30: profile.price?.walking30 || "",
         walking60: profile.price?.walking60 || "",
         boarding: profile.price?.boarding || "",
@@ -197,6 +197,14 @@ export default function SitterDashboard() {
         headers,
         body: JSON.stringify(payload),
       });
+
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.error("Your session has expired. Please log in again.");
+        setTimeout(() => window.location.href = "/login", 1500);
+        return;
+      }
 
       if (!res.ok) throw new Error("Save failed");
 
@@ -464,8 +472,8 @@ export default function SitterDashboard() {
                       <input
                         type={type}
                         className={`w-full border-2 p-3 rounded-xl outline-none transition ${key === "phone" && !editData[key]
-                            ? "border-red-300 focus:border-red-400 bg-red-50"
-                            : "border-gray-200 focus:border-orange-400"
+                          ? "border-red-300 focus:border-red-400 bg-red-50"
+                          : "border-gray-200 focus:border-orange-400"
                           }`}
                         value={editData[key]}
                         placeholder={key === "phone" ? "e.g. 9876543210" : ""}
@@ -479,7 +487,7 @@ export default function SitterDashboard() {
                     <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Service Prices (₹)</p>
                   </div>
                   {[
-                    ["Daycare Price (₹)", "daycare"],
+                    ["Daycare Price (₹)", "dayCare"],
                     ["30 Min Walk Price (₹)", "walking30"],
                     ["60 Min Walk Price (₹)", "walking60"],
                     ["Boarding Price (₹)", "boarding"],
@@ -513,7 +521,7 @@ export default function SitterDashboard() {
                     { l: "Phone", k: "phone" },
                     { l: "City", k: "city" },
                     { l: "Experience", k: "experience" },
-                    { l: "Daycare", k: "daycare", isPrice: true },
+                    { l: "Daycare", k: "dayCare", isPrice: true },
                     { l: "30 Min Walk", k: "walking30", isPrice: true },
                     { l: "60 Min Walk", k: "walking60", isPrice: true },
                     { l: "Boarding", k: "boarding", isPrice: true },
@@ -736,8 +744,8 @@ export default function SitterDashboard() {
                               onClick={() => endWalk(b._id)}
                               disabled={activeWalkId !== b._id}
                               className={`flex-1 py-3.5 rounded-2xl font-bold text-base shadow-lg transition-all ${activeWalkId === b._id
-                                  ? "bg-gradient-to-r from-red-500 to-red-700 text-white hover:scale-105 active:scale-95"
-                                  : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                ? "bg-gradient-to-r from-red-500 to-red-700 text-white hover:scale-105 active:scale-95"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
                                 }`}
                             >
                               🛑 End Walk

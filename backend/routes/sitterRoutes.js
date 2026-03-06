@@ -40,7 +40,7 @@ router.get("/", async (req, res) => {
 
   if (lat && lng) {
     const maxDistance = radius ? parseInt(radius) : 2000; // Default 2km in meters
-    
+
     console.log(`🔍 Searching sitters within ${maxDistance}m of (${lat}, ${lng})`);
 
     sitters = await Sitter.find({
@@ -92,7 +92,7 @@ router.get("/:id", async (req, res) => {
 
 // POST /api/sitters/upload-photo (Upload photo to Cloudinary) - MUST BE BEFORE /:id ROUTES
 const storage = multer.memoryStorage();
-const upload = multer({ 
+const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
@@ -106,7 +106,7 @@ const upload = multer({
 router.post("/upload-photo", upload.single("photo"), async (req, res) => {
   try {
     console.log("📸 Upload request received");
-    
+
     if (!req.file) {
       console.log("❌ No file in request");
       return res.status(400).json({ message: "No file uploaded" });
@@ -145,15 +145,15 @@ router.post("/upload-photo", upload.single("photo"), async (req, res) => {
       uploadStream.end(req.file.buffer);
     });
 
-    res.json({ 
+    res.json({
       imageUrl: result.secure_url,
       publicId: result.public_id
     });
 
   } catch (err) {
     console.error("❌ Upload failed:", err);
-    res.status(500).json({ 
-      message: "Upload failed", 
+    res.status(500).json({
+      message: "Upload failed",
       error: err.message,
       details: err.toString()
     });
@@ -164,21 +164,21 @@ router.post("/upload-photo", upload.single("photo"), async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     console.log("📝 Creating sitter profile with data:", req.body);
-    
-    const { 
-      userId, 
-      name, 
-      city, 
-      experience, 
-      services, 
-      price, 
-      bio, 
+
+    const {
+      userId,
+      name,
+      city,
+      experience,
+      services,
+      price,
+      bio,
       photo,
       address,
       aadhaarNumber,
       panNumber,
       homePhoto,
-      phone, 
+      phone,
     } = req.body;
 
     // Validation
@@ -186,8 +186,8 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
     if (!name || !city || !experience || !services || !price || !bio) {
-      return res.status(400).json({ 
-        message: "Missing required fields: name, city, experience, services, price, bio" 
+      return res.status(400).json({
+        message: "Missing required fields: name, city, experience, services, price, bio"
       });
     }
 
@@ -218,17 +218,17 @@ router.post("/", async (req, res) => {
     // Add default location (prevents validation error)
     // Geocode address
     let coordinates = null;
-    
+
     if (address) {
       coordinates = await geocodeAddress(address);
     }
-    
+
     if (!coordinates) {
       return res.status(400).json({
         message: "Could not find valid location for this address"
       });
     }
-    
+
     sitterData.location = {
       type: "Point",
       coordinates: [coordinates.lon, coordinates.lat]
@@ -245,9 +245,9 @@ router.post("/", async (req, res) => {
     res.json({ sitter });
   } catch (err) {
     console.error("❌ Error creating sitter:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to create sitter profile",
-      error: err.message 
+      error: err.message
     });
   }
 });
@@ -256,45 +256,45 @@ router.post("/", async (req, res) => {
 router.post("/bank-details", requireAuth, async (req, res) => {
   try {
     console.log("🏦 Bank details submission received");
-    
-    const { 
-      accountHolderName, 
-      accountNumber, 
-      ifscCode, 
-      bankName, 
-      branchName, 
-      accountType 
+
+    const {
+      accountHolderName,
+      accountNumber,
+      ifscCode,
+      bankName,
+      branchName,
+      accountType
     } = req.body;
 
     // Validation
     if (!accountHolderName || !accountNumber || !ifscCode || !bankName) {
-      return res.status(400).json({ 
-        message: "Account holder name, account number, IFSC code, and bank name are required" 
+      return res.status(400).json({
+        message: "Account holder name, account number, IFSC code, and bank name are required"
       });
     }
 
     // Validate IFSC format (4 letters + 0 + 6 alphanumeric)
     const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
     if (!ifscRegex.test(ifscCode.toUpperCase())) {
-      return res.status(400).json({ 
-        message: "Invalid IFSC code format" 
+      return res.status(400).json({
+        message: "Invalid IFSC code format"
       });
     }
 
     // Validate account number (9-18 digits)
     const accountRegex = /^\d{9,18}$/;
     if (!accountRegex.test(accountNumber)) {
-      return res.status(400).json({ 
-        message: "Account number must be between 9 and 18 digits" 
+      return res.status(400).json({
+        message: "Account number must be between 9 and 18 digits"
       });
     }
 
     // Get user and sitter profile
     const user = await User.findById(req.user.id);
-    
+
     if (!user || !user.sitterProfile) {
-      return res.status(404).json({ 
-        message: "Sitter profile not found for this user" 
+      return res.status(404).json({
+        message: "Sitter profile not found for this user"
       });
     }
 
@@ -302,8 +302,8 @@ router.post("/bank-details", requireAuth, async (req, res) => {
     const sitter = await Sitter.findById(user.sitterProfile);
 
     if (!sitter) {
-      return res.status(404).json({ 
-        message: "Sitter profile not found in database" 
+      return res.status(404).json({
+        message: "Sitter profile not found in database"
       });
     }
 
@@ -323,16 +323,16 @@ router.post("/bank-details", requireAuth, async (req, res) => {
 
     console.log("✅ Bank details saved successfully for sitter:", sitter._id);
 
-    res.json({ 
+    res.json({
       message: "Bank details saved successfully",
       bankDetails: sitter.bankDetails.toObject()
     });
-    
+
   } catch (err) {
     console.error("❌ Error saving bank details:", err);
-    res.status(500).json({ 
+    res.status(500).json({
       message: "Failed to save bank details",
-      error: err.message 
+      error: err.message
     });
   }
 });
@@ -397,8 +397,13 @@ router.patch("/:id", requireAuth, async (req, res) => {
     });
 
     Object.assign(sitter, updateData);
-    await sitter.save();
-    res.json(sitter);
+    try {
+      await sitter.save();
+      res.json(sitter);
+    } catch (saveErr) {
+      console.error("🔥 SAVE ERROR DETAILS:", saveErr.errors || saveErr);
+      throw saveErr;
+    }
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
