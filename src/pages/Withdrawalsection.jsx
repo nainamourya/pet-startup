@@ -49,10 +49,10 @@ export default function WithdrawalSection({ profile }) {
   }, [profile]);
 
   // Fetch withdrawal history
-  const fetchHistory = async () => {
+  const fetchHistory = async (background = false) => {
     if (!profile?._id) return;
 
-    setHistoryLoading(true);
+    if (!background) setHistoryLoading(true);
     try {
       const res = await fetch(
         `${API_BASE_URL}/api/withdrawals/history/${profile._id}`
@@ -64,7 +64,7 @@ export default function WithdrawalSection({ profile }) {
     } catch (err) {
       console.error("History fetch error:", err);
     } finally {
-      setHistoryLoading(false);
+      if (!background) setHistoryLoading(false);
     }
   };
 
@@ -144,7 +144,7 @@ export default function WithdrawalSection({ profile }) {
 
       toast.success("Withdrawal request submitted successfully! 🎉");
       setShowWithdrawModal(false);
-      
+
       // Reset form
       setWithdrawalForm({
         amount: "",
@@ -153,16 +153,24 @@ export default function WithdrawalSection({ profile }) {
         },
       });
 
-      // Refresh balance and history
-      const balanceRes = await fetch(
-        `${API_BASE_URL}/api/withdrawals/balance/${profile._id}`
-      );
-      const balanceData = await balanceRes.json();
-      if (balanceData.success) {
-        setBalance(balanceData);
-      }
+      // ✅ Optimistic balance logic
+      setBalance((prev) => ({
+        ...prev,
+        availableBalance: prev.availableBalance - Number(withdrawalForm.amount),
+        pendingWithdrawals: (prev.pendingWithdrawals || 0) + 1,
+      }));
 
-      fetchHistory();
+      // Background fetch balance to ensure accuracy
+      fetch(`${API_BASE_URL}/api/withdrawals/balance/${profile._id}`)
+        .then(res => res.json())
+        .then(balanceData => {
+          if (balanceData.success) {
+            setBalance(balanceData);
+          }
+        });
+
+      // Background fetch history without showing a spinner
+      fetchHistory(true);
     } catch (err) {
       console.error("Withdrawal error:", err);
       toast.error("Something went wrong");
@@ -196,16 +204,25 @@ export default function WithdrawalSection({ profile }) {
       }
 
       toast.success("Withdrawal cancelled");
-      fetchHistory();
-      
-      // Refresh balance
-      const balanceRes = await fetch(
-        `${API_BASE_URL}/api/withdrawals/balance/${profile._id}`
+
+      // ✅ Optimistic UI history update
+      setWithdrawalHistory((prev) =>
+        prev.map((w) =>
+          w._id === withdrawalId ? { ...w, status: "cancelled" } : w
+        )
       );
-      const balanceData = await balanceRes.json();
-      if (balanceData.success) {
-        setBalance(balanceData);
-      }
+
+      // Background fetch balance quietly
+      fetch(`${API_BASE_URL}/api/withdrawals/balance/${profile._id}`)
+        .then(res => res.json())
+        .then(balanceData => {
+          if (balanceData.success) {
+            setBalance(balanceData);
+          }
+        });
+
+      // Background history fetch quietly just in case
+      fetchHistory(true);
     } catch (err) {
       console.error("Cancel error:", err);
       toast.error("Failed to cancel withdrawal");
@@ -258,56 +275,70 @@ export default function WithdrawalSection({ profile }) {
     <>
       {/* Balance Card */}
       {/* Balance Card */}
-<div className="mt-10 p-6 rounded-2xl border bg-gradient-to-br from-white to-gray-50 shadow-sm">
-  <div className="flex justify-between items-start">
-    <div>
-      <p className="text-sm text-gray-500 mb-1">Available Balance</p>
-      <p className="text-4xl font-bold text-gray-900">
-        ₹{balance.availableBalance?.toLocaleString()}
-      </p>
+      <div className="mt-10 p-6 rounded-2xl border bg-gradient-to-br from-white to-gray-50 shadow-sm">
+        <div className="flex justify-between items-start">
+          <div>
+            <p className="text-sm text-gray-500 mb-1">Available Balance</p>
+            <p className="text-4xl font-bold text-gray-900">
+              ₹{balance.availableBalance?.toLocaleString()}
+            </p>
 
-      <div className="mt-4 flex gap-4 text-sm">
-        <div>
-          <p className="text-gray-500">Total Earnings</p>
-          <p className="font-semibold">₹{balance.totalEarnings?.toLocaleString()}</p>
+            <div className="mt-4 flex gap-4 text-sm">
+              <div className="p-3 bg-white/50 rounded-xl border border-gray-100 flex-1">
+                <p className="text-gray-500 mb-1">Total Earnings</p>
+                <p className="font-bold text-gray-800">₹{(balance.totalEarnings || 0).toLocaleString()}</p>
+              </div>
+              <div className="p-3 bg-white/50 rounded-xl border border-gray-100 flex-1">
+                <p className="text-gray-500 mb-1">Pending Clearance</p>
+                <p className="font-bold text-amber-600 flex items-center gap-1">
+                  ₹{(balance.pendingClearance || 0).toLocaleString()}
+                  <span className="group relative cursor-help">
+                    <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none z-10">
+                      Earnings are held for {balance.limits?.cooldownHours ? Math.ceil(balance.limits.cooldownHours / 24) || 3 : 3} days after service completion.
+                    </div>
+                  </span>
+                </p>
+              </div>
+              <div className="p-3 bg-white/50 rounded-xl border border-gray-100 flex-1">
+                <p className="text-gray-500 mb-1">Withdrawn</p>
+                <p className="font-bold text-green-600">₹{(balance.withdrawnAmount || 0).toLocaleString()}</p>
+              </div>
+            </div>
+
+            {balance.pendingWithdrawals > 0 && (
+              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 text-yellow-700 text-xs font-semibold border border-yellow-100">
+                <svg className="w-4 h-4 animate-spin-slow" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                {balance.pendingWithdrawals} pending withdrawal{balance.pendingWithdrawals > 1 ? "s" : ""}
+              </div>
+            )}
+          </div>
+
+          {/* ✅ FIXED BUTTON */}
+          <button
+            onClick={() => setShowWithdrawModal(true)}
+            disabled={balance.availableBalance < balance.limits.minWithdrawal}
+            className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:grayscale"
+            style={{
+              backgroundColor: balance.availableBalance < balance.limits.minWithdrawal
+                ? '#9ca3af' // Gray when disabled
+                : brand
+            }}
+          >
+            Withdraw Money
+          </button>
         </div>
-        <div>
-          <p className="text-gray-500">Withdrawn</p>
-          <p className="font-semibold">₹{balance.withdrawnAmount?.toLocaleString()}</p>
-        </div>
+
+        {balance.availableBalance < balance.limits.minWithdrawal && (
+          <div className="mt-4 p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
+            ℹ️ Minimum withdrawal amount is ₹{balance.limits.minWithdrawal}
+          </div>
+        )}
       </div>
-
-      {balance.pendingWithdrawals > 0 && (
-        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 text-yellow-700 text-xs">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-          </svg>
-          {balance.pendingWithdrawals} pending withdrawal{balance.pendingWithdrawals > 1 ? "s" : ""}
-        </div>
-      )}
-    </div>
-
-    {/* ✅ FIXED BUTTON */}
-    <button
-      onClick={() => setShowWithdrawModal(true)}
-      disabled={balance.availableBalance < balance.limits.minWithdrawal}
-      className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:grayscale"
-      style={{ 
-        backgroundColor: balance.availableBalance < balance.limits.minWithdrawal 
-          ? '#9ca3af' // Gray when disabled
-          : brand 
-      }}
-    >
-      Withdraw Money
-    </button>
-  </div>
-
-  {balance.availableBalance < balance.limits.minWithdrawal && (
-    <div className="mt-4 p-3 rounded-lg bg-blue-50 text-blue-700 text-sm">
-      ℹ️ Minimum withdrawal amount is ₹{balance.limits.minWithdrawal}
-    </div>
-  )}
-</div>
 
       {/* Withdrawal History */}
       <div className="mt-8 p-6 rounded-2xl border bg-white">
@@ -408,18 +439,18 @@ export default function WithdrawalSection({ profile }) {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Withdraw Money</h2>
                 <button
-  onClick={() => setShowWithdrawModal(true)}
-  disabled={balance.availableBalance < balance.limits.minWithdrawal}
-  className="px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale hover:scale-105 disabled:hover:scale-100"
-  style={{ 
-    backgroundColor: balance.availableBalance < balance.limits.minWithdrawal 
-      ? '#d1d5db' // gray color when disabled
-      : brand,
-    color: 'white'
-  }}
->
-  Withdraw Money
-</button>
+                  onClick={() => setShowWithdrawModal(true)}
+                  disabled={balance.availableBalance < balance.limits.minWithdrawal}
+                  className="px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale hover:scale-105 disabled:hover:scale-100"
+                  style={{
+                    backgroundColor: balance.availableBalance < balance.limits.minWithdrawal
+                      ? '#d1d5db' // gray color when disabled
+                      : brand,
+                    color: 'white'
+                  }}
+                >
+                  Withdraw Money
+                </button>
               </div>
 
               {/* Amount Input */}
@@ -462,11 +493,10 @@ export default function WithdrawalSection({ profile }) {
                           },
                         })
                       }
-                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-                        withdrawalForm.paymentMethod.type === method
-                          ? "text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${withdrawalForm.paymentMethod.type === method
+                        ? "text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
                       style={{
                         backgroundColor:
                           withdrawalForm.paymentMethod.type === method ? brand : undefined,

@@ -33,20 +33,24 @@ export default function MyBookings() {
       const res = await fetch(`${API_BASE_URL}/api/bookings/${id}/cancel`, {
         method: "PATCH",
       });
-  
+
       const data = await res.json();
-  
+
       if (!res.ok) {
         alert(data.message || "Cancellation failed");
         return;
       }
-  
+
       alert(
         data.refundAmount > 0
           ? `✅ Cancelled! Refund of ₹${data.refundAmount} (${data.refundPercent}%) will arrive in 5–7 business days.`
           : `✅ Booking cancelled. No refund applicable.`
       );
-      load(); // reload bookings
+
+      // ✅ Instantly update the local state without triggering a loading spinner
+      setBookings((prev) =>
+        prev.map((b) => (b._id === id ? { ...b, status: "cancelled" } : b))
+      );
     } catch (err) {
       console.error("Cancel error:", err);
       alert("Something went wrong");
@@ -162,28 +166,28 @@ export default function MyBookings() {
                   </div>
                   {/* STATUS PILL */}
                   {{
-                    pending:    <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">⏳ Pending</span>,
-                    confirmed:  <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">✅ Confirmed</span>,
+                    pending: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">⏳ Pending</span>,
+                    confirmed: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">✅ Confirmed</span>,
                     on_the_way: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">🚗 On The Way</span>,
-                    arrived:    <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200 animate-pulse">📍 Arrived!</span>,
-                    completed:  <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">🎉 Completed</span>,
-                    rejected:   <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">✕ Rejected</span>,
+                    arrived: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-200 animate-pulse">📍 Arrived!</span>,
+                    completed: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">🎉 Completed</span>,
+                    rejected: <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">✕ Rejected</span>,
                   }[b.status]}
                 </div>
                 {b.status !== "completed" && b.status !== "cancelled" && (
-  <button
-    onClick={() => cancelBooking(
-      b._id,
-      b.payment?.amount || b.servicePrice,
-      b.status,
-      b.service,
-      b.walk?.date || b.boarding?.startDate || b.date
-    )}
-    className="w-full mt-2 px-4 py-2 bg-red-50 border border-red-300 text-red-700 font-semibold rounded-xl hover:bg-red-100 transition-all"
-  >
-    Cancel Booking
-  </button>
-)}
+                  <button
+                    onClick={() => cancelBooking(
+                      b._id,
+                      b.payment?.amount || b.servicePrice,
+                      b.status,
+                      b.service,
+                      b.walk?.date || b.boarding?.startDate || b.date
+                    )}
+                    className="w-full mt-2 px-4 py-2 bg-red-50 border border-red-300 text-red-700 font-semibold rounded-xl hover:bg-red-100 transition-all"
+                  >
+                    Cancel Booking
+                  </button>
+                )}
                 <div className="p-5 space-y-4">
 
                   {/* SERVICE + PRICE */}
@@ -285,39 +289,36 @@ export default function MyBookings() {
                       Nothing is blocked by payment status
                   ══════════════════════════════════════ */}
                   {!isPaid && ["confirmed", "on_the_way", "arrived", "completed"].includes(b.status) && (
-                    <div className={`p-4 rounded-2xl space-y-3 border-2 ${
-                      b.status === "completed"
+                    <div className={`p-4 rounded-2xl space-y-3 border-2 ${b.status === "completed"
                         ? "bg-indigo-50 border-indigo-300"
                         : b.status === "arrived"
-                        ? "bg-orange-50 border-orange-400"
-                        : "bg-blue-50 border-blue-200"
-                    }`}>
+                          ? "bg-orange-50 border-orange-400"
+                          : "bg-blue-50 border-blue-200"
+                      }`}>
                       <div className="flex items-center gap-2">
-                        {b.status === "confirmed"  && <p className="font-semibold text-green-800 text-sm">✅ Confirmed — pay when you're ready</p>}
+                        {b.status === "confirmed" && <p className="font-semibold text-green-800 text-sm">✅ Confirmed — pay when you're ready</p>}
                         {b.status === "on_the_way" && <p className="font-semibold text-blue-800 text-sm">🚗 Sitter coming — pay anytime</p>}
-                        {b.status === "arrived"    && <p className="font-bold text-orange-800">📍 Sitter arrived — pay to begin service</p>}
-                        {b.status === "completed"  && <p className="font-bold text-indigo-800">🎉 Service done! Please pay the sitter</p>}
+                        {b.status === "arrived" && <p className="font-bold text-orange-800">📍 Sitter arrived — pay to begin service</p>}
+                        {b.status === "completed" && <p className="font-bold text-indigo-800">🎉 Service done! Please pay the sitter</p>}
                       </div>
 
                       <div className="flex items-center justify-between px-1">
                         <span className="text-sm font-semibold text-gray-600">Amount:</span>
-                        <span className={`text-2xl font-bold ${
-                          b.status === "completed" ? "text-indigo-600"
-                          : b.status === "arrived" ? "text-orange-600"
-                          : "text-blue-600"
-                        }`}>₹{amount}</span>
+                        <span className={`text-2xl font-bold ${b.status === "completed" ? "text-indigo-600"
+                            : b.status === "arrived" ? "text-orange-600"
+                              : "text-blue-600"
+                          }`}>₹{amount}</span>
                       </div>
 
                       <button
                         onClick={() => handlePayment(b, amount)}
                         disabled={paymentLoading === b._id}
-                        className={`w-full py-4 rounded-2xl font-bold text-white text-lg transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${
-                          b.status === "completed"
+                        className={`w-full py-4 rounded-2xl font-bold text-white text-lg transition-all shadow-lg hover:scale-105 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 ${b.status === "completed"
                             ? "bg-gradient-to-r from-indigo-500 to-purple-600"
                             : b.status === "arrived"
-                            ? "bg-gradient-to-r from-orange-500 to-red-500"
-                            : "bg-gradient-to-r from-blue-500 to-indigo-600"
-                        }`}
+                              ? "bg-gradient-to-r from-orange-500 to-red-500"
+                              : "bg-gradient-to-r from-blue-500 to-indigo-600"
+                          }`}
                       >
                         {paymentLoading === b._id ? (
                           <>
@@ -400,9 +401,9 @@ export default function MyBookings() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">🐾 How It Works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             {[
-              { icon: "✅", title: "Book a Sitter",     desc: "Choose your sitter and book instantly" },
-              { icon: "🚗", title: "Sitter Travels",    desc: "Sitter comes to you — track them live" },
-              { icon: "💳", title: "Flexible Payment",  desc: "Pay before, during, or after service" },
+              { icon: "✅", title: "Book a Sitter", desc: "Choose your sitter and book instantly" },
+              { icon: "🚗", title: "Sitter Travels", desc: "Sitter comes to you — track them live" },
+              { icon: "💳", title: "Flexible Payment", desc: "Pay before, during, or after service" },
             ].map(({ icon, title, desc }) => (
               <div key={title} className="p-3 bg-gray-50 rounded-2xl">
                 <p className="text-2xl mb-1">{icon}</p>

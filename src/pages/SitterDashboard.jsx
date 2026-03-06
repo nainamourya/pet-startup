@@ -224,14 +224,16 @@ export default function SitterDashboard() {
     const map = Object.fromEntries(last7.map((d) => [d, 0]));
     bookings.forEach((b) => {
       if (b.payment?.paid) {
-        const d = new Date(b.payment.paidAt).toDateString();
-        if (d in map) map[d] += b.payment.amount || 0;
+        const paidDate = b.payment.paidAt || b.completedAt || b.createdAt;
+        if (!paidDate) return;
+        const d = new Date(paidDate).toDateString();
+        if (d in map) map[d] += (b.servicePrice || b.payment.amount || 0) * 0.9;
       }
     });
     setWeeklyEarnings(
       last7.map((d) => ({
         day: d.split(" ").slice(0, 3).join(" "),
-        amount: map[d],
+        amount: Math.floor(map[d]),
       }))
     );
   }, [bookings]);
@@ -279,15 +281,18 @@ export default function SitterDashboard() {
 
   const paidBookings = bookings.filter((b) => b.payment?.paid);
   const today = new Date();
-  const todayIncome = paidBookings
-    .filter((b) => new Date(b.payment.paidAt).toDateString() === today.toDateString())
-    .reduce((s, b) => s + (b.payment.amount || 0), 0);
-  const monthlyIncome = paidBookings
+  const todayIncome = Math.floor(paidBookings
     .filter((b) => {
-      const d = new Date(b.payment.paidAt);
+      const paidDate = b.payment.paidAt || b.completedAt || b.createdAt;
+      return new Date(paidDate).toDateString() === today.toDateString();
+    })
+    .reduce((s, b) => s + ((b.servicePrice || b.payment.amount || 0) * 0.9), 0));
+  const monthlyIncome = Math.floor(paidBookings
+    .filter((b) => {
+      const d = new Date(b.payment.paidAt || b.completedAt || b.createdAt);
       return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
     })
-    .reduce((s, b) => s + (b.payment.amount || 0), 0);
+    .reduce((s, b) => s + ((b.servicePrice || b.payment.amount || 0) * 0.9), 0));
 
   // ─── PRICE DISPLAY HELPER ───
   const getPrice = (key) => profile?.price?.[key] ?? "";
@@ -458,11 +463,10 @@ export default function SitterDashboard() {
                       </label>
                       <input
                         type={type}
-                        className={`w-full border-2 p-3 rounded-xl outline-none transition ${
-                          key === "phone" && !editData[key]
+                        className={`w-full border-2 p-3 rounded-xl outline-none transition ${key === "phone" && !editData[key]
                             ? "border-red-300 focus:border-red-400 bg-red-50"
                             : "border-gray-200 focus:border-orange-400"
-                        }`}
+                          }`}
                         value={editData[key]}
                         placeholder={key === "phone" ? "e.g. 9876543210" : ""}
                         onChange={(e) => handleEditChange(key, e.target.value)}
@@ -517,9 +521,8 @@ export default function SitterDashboard() {
                   ].map(({ l, k, isPrice }) => (
                     <div
                       key={k}
-                      className={`p-5 rounded-2xl border ${
-                        k === "phone" && !profile[k] ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"
-                      }`}
+                      className={`p-5 rounded-2xl border ${k === "phone" && !profile[k] ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"
+                        }`}
                     >
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{l}</p>
                       {k === "phone" && !profile[k] ? (
@@ -650,8 +653,8 @@ export default function SitterDashboard() {
                                     active && b.status !== "rejected"
                                       ? brand
                                       : b.status === "rejected" && label === "Confirmed"
-                                      ? "#ef4444"
-                                      : "#e5e7eb",
+                                        ? "#ef4444"
+                                        : "#e5e7eb",
                                 }}
                               />
                               <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{label}</span>
@@ -724,20 +727,18 @@ export default function SitterDashboard() {
                             <button
                               onClick={() => startWalk(b._id)}
                               disabled={!!activeWalkId}
-                              className={`flex-1 py-3.5 rounded-2xl font-bold text-base shadow-lg transition-all ${
-                                activeWalkId ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-gradient-to-r from-green-500 to-green-700 text-white hover:scale-105 active:scale-95"
-                              }`}
+                              className={`flex-1 py-3.5 rounded-2xl font-bold text-base shadow-lg transition-all ${activeWalkId ? "bg-gray-200 text-gray-500 cursor-not-allowed" : "bg-gradient-to-r from-green-500 to-green-700 text-white hover:scale-105 active:scale-95"
+                                }`}
                             >
                               {activeWalkId === b._id ? "🚶 Walking..." : "🚶 Start Walk"}
                             </button>
                             <button
                               onClick={() => endWalk(b._id)}
                               disabled={activeWalkId !== b._id}
-                              className={`flex-1 py-3.5 rounded-2xl font-bold text-base shadow-lg transition-all ${
-                                activeWalkId === b._id
+                              className={`flex-1 py-3.5 rounded-2xl font-bold text-base shadow-lg transition-all ${activeWalkId === b._id
                                   ? "bg-gradient-to-r from-red-500 to-red-700 text-white hover:scale-105 active:scale-95"
                                   : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              }`}
+                                }`}
                             >
                               🛑 End Walk
                             </button>
