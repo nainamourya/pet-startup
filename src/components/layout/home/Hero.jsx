@@ -297,7 +297,7 @@ export default function Hero() {
           <div className="flex items-center gap-2 bg-white/70 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
             <span className="text-2xl">🐕</span>
             <div className="text-left">
-              <p className="font-bold text-gray-900">10,000+</p>
+              <p className="font-bold text-gray-900">5000+</p>
               <p className="text-xs text-gray-600">Happy Pets</p>
             </div>
           </div>
@@ -356,16 +356,22 @@ export default function Hero() {
         >
           <p className="text-xs sm:text-sm text-gray-500 mb-3">Trusted by pet parents across India</p>
           <div className="flex justify-center items-center gap-2 flex-wrap">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold"
-                >
-                  {String.fromCharCode(64 + i)}
-                </div>
-              ))}
-            </div>
+          <div className="flex -space-x-2">
+  {[
+    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80",
+    "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=80&q=80",
+    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80",
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80",
+    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&q=80",
+  ].map((src, i) => (
+    <div
+      key={i}
+      className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-white overflow-hidden"
+    >
+      <img src={src} alt="pet owner" className="w-full h-full object-cover" />
+    </div>
+  ))}
+</div>
             <span className="text-sm text-gray-600 font-medium ml-2">
               +5,000 pet owners this month
             </span>
