@@ -36,6 +36,13 @@ router.post("/", async (req, res) => {
     reviewed: true,
   });
 
+  // 🔥 REAL-TIME UPDATE: Notify about review submission
+  io.to(bookingId).emit("booking-updated", {
+    bookingId,
+    reviewed: true,
+    message: "Review submitted successfully!",
+  });
+
   res.json(review);
 });
 

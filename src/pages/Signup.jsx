@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API_BASE_URL from "../config/api";
+import { socket } from "../socket";
 
 // Professional SVG Icons Component
 const Icons = {
@@ -197,6 +198,9 @@ export default function Signup() {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      // Join user room for real-time updates
+      socket.emit("join-user", { userId: data.user.id });
 
       navigate("/");
     } catch (err) {

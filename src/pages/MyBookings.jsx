@@ -76,7 +76,23 @@ export default function MyBookings() {
       );
     });
 
-    return () => socket.off("status-updated");
+    // 🔥 Listen for new bookings
+    socket.on("booking-created", () => {
+      load(); // Refetch all bookings
+    });
+
+    // 🔥 Listen for booking updates (e.g., reviewed)
+    socket.on("booking-updated", ({ bookingId, reviewed }) => {
+      setBookings((prev) =>
+        prev.map((b) => b._id === bookingId ? { ...b, reviewed } : b)
+      );
+    });
+
+    return () => {
+      socket.off("status-updated");
+      socket.off("booking-created");
+      socket.off("booking-updated");
+    };
   }, [bookings.length]); // re-run when new bookings load
 
   /* ─── PAYMENT — instant state update, no reload ─── */

@@ -151,6 +151,14 @@ io.on("connection", (socket) => {
   console.log("🟢 Socket connected:", socket.id);
 
   /* =====================
+     JOIN USER ROOM
+  ===================== */
+  socket.on("join-user", ({ userId }) => {
+    socket.join(`user-${userId}`);
+    console.log("👤 Joined user room:", `user-${userId}`);
+  });
+
+  /* =====================
      JOIN WALK ROOM
   ===================== */
   socket.on("join-walk", ({ bookingId }) => {

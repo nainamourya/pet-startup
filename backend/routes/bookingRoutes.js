@@ -159,6 +159,12 @@ router.post("/", async (req, res) => {
       status: "pending",
     });
 
+    // 🔥 REAL-TIME UPDATE: Notify owner of new booking
+    io.to(`user-${ownerId}`).emit("booking-created", {
+      bookingId: booking._id,
+      message: "New booking created successfully!",
+    });
+
     res.json(booking);
   } catch (err) {
     console.error("Booking error:", err);
